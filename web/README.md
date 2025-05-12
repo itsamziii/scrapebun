@@ -1,19 +1,72 @@
-blinker==1.9.0
-certifi==2025.4.26
-click==8.1.8
-colorama==0.4.6
-distlib==0.3.9
-filelock==3.18.0
-Flask==3.1.0
-gunicorn==21.2.0
-itsdangerous==2.2.0
-Jinja2==3.1.6
-MarkupSafe==3.0.2
-packaging==25.0
-pipenv==2025.0.2
-platformdirs==4.3.8
-python-dotenv==1.1.0
-setuptools==80.4.0
-virtualenv==20.31.2
-waitress==3.0.0
-Werkzeug==3.1.3
+# ScrapeBun
+
+A modern web application built with Next.js and React.
+
+## Features
+
+- Modern UI with Tailwind CSS
+- Authentication powered by Clerk
+- Dark/Light theme support with next-themes
+- Built with TypeScript for type safety
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v23 or newer)
+- PNPM package manager
+
+### Installation
+
+1. Clone the repository
+   ```bash
+   git clone https://github.com/itsamziii/scrapebun.git
+   cd scrapebun/web
+   ```
+
+2. Install dependencies
+   ```bash
+   pnpm install
+   ```
+
+3. Set up environment variables
+   ```bash
+   cp .env.example .env
+   # Edit .llm.env with your configuration
+   ```
+
+4. Start the development server
+   ```bash
+   pnpm dev
+   ```
+
+## Available Scripts
+
+- `pnpm dev` - Start the development server
+- `pnpm build` - Build for production
+- `pnpm start` - Start the production server
+- `pnpm lint` - Run ESLint
+- `pnpm format:write` - Format code with Prettier
+- `pnpm typecheck` - Run TypeScript type checking
+
+## Deployment
+
+This project can be deployed using Docker:
+
+```bash
+docker build -t scrapebun .
+docker run -p 3000:3000 scrapebun
+```
+
+## Tech Stack
+
+- [Next.js](https://nextjs.org/)
+- [React](https://react.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Clerk](https://clerk.com/)
+- [Zod](https://zod.dev/)
+
+## License
+
+ISC
