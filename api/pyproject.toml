@@ -17,6 +17,7 @@ dependencies = [
     "flask-pydantic (>=0.13.1,<0.14.0)",
     "types-flask (>=1.1.6,<2.0.0)",
     "crawl4ai (>=0.6.2,<0.7.0)",
+    "gunicorn (>=23.0.0,<24.0.0)",
 ]
 
 [tool.poetry]
