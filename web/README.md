@@ -1,48 +1,19 @@
-# ScrapeBun Web
-
-The frontend web application for ScrapeBun.
-
-## Prerequisites
-
-- Node.js 23 or higher
-- pnpm
-
-## Installation
-
-1. Clone the repository
-2. Install dependencies:
-```bash
-pnpm install
-```
-
-## Development
-
-1. Start the development server:
-```bash
-pnpm dev
-```
-
-The application will be available at `http://localhost:3000`
-
-## Project Structure
-
-```
-web/
-├── src/
-│   ├── app/           # Application code
-│   ├── components/    # React components
-│   ├── styles/        # CSS/SCSS files
-│   └── utils/         # Utility functions
-├── public/           # Static assets
-└── package.json     # Dependencies and scripts
-```
-
-## Development Tools
-
-- **Type Checking**: `pnpm type-check`
-- **Code Formatting**: `pnpm format`
-- **Linting**: `pnpm lint`
-
-## License
-
-ISC
+blinker==1.9.0
+certifi==2025.4.26
+click==8.1.8
+colorama==0.4.6
+distlib==0.3.9
+filelock==3.18.0
+Flask==3.1.0
+gunicorn==21.2.0
+itsdangerous==2.2.0
+Jinja2==3.1.6
+MarkupSafe==3.0.2
+packaging==25.0
+pipenv==2025.0.2
+platformdirs==4.3.8
+python-dotenv==1.1.0
+setuptools==80.4.0
+virtualenv==20.31.2
+waitress==3.0.0
+Werkzeug==3.1.3
