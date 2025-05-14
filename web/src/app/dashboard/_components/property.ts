@@ -12,6 +12,7 @@ export interface Property {
   type: PropertyType;
   value: string | number | boolean | null;
   parentId?: string;
-  properties?: Property[]; // For object type
-  items?: Property[]; // For array type
+  properties?: Property[]; 
+  items?: Property[]; 
+  arrayItemType?: PropertyType;
 }

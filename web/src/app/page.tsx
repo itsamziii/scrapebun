@@ -3,6 +3,7 @@ import HeroSection from "./_components/hero-section";
 import FeatureSection from "./_components/features";
 import Footer from "./_components/footer";
 import CTA_Section from "./_components/cta";
+
 export default function HomePage() {
   return (
     <div className="relative min-h-screen">

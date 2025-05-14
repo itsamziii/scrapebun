@@ -198,16 +198,6 @@ const Dashboard = () => {
     setActiveTab("custom");
   }, []);
 
-  const handleSubmit = useCallback(() => {
-    console.log({
-      taskType,
-      scrapeUrl,
-      textToSummarize,
-      summaryLength,
-      summaryStyle,
-    });
-  }, [taskType, scrapeUrl, textToSummarize, summaryLength, summaryStyle]);
-
   const taskCards = [
     {
       icon: <Globe className="text-ai-primary" />,
@@ -445,7 +435,7 @@ const Dashboard = () => {
 
                       <div className="mt-6">
                         <label className="mb-1 block text-sm text-white/70">
-                          Fields to Extract
+                      Select Fields
                         </label>
                         <DataObjectBuilder onObjectChange={setExtractFields} />
                       </div>

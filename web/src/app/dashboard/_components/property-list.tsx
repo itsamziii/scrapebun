@@ -142,7 +142,7 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
               <SelectTrigger className="border-white/10 bg-white/5 text-white">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
-              <SelectContent className="bg-black border-white/10">
+              <SelectContent className="border-white/10 bg-black">
                 <SelectItem value="string">String</SelectItem>
                 <SelectItem value="number">Number</SelectItem>
                 <SelectItem value="boolean">Boolean</SelectItem>
@@ -184,7 +184,19 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
             </Button>
           </div>
 
-          {/* Nested properties rendering can go here */}
+          <div className="space-y-4">
+            {(property.type === "object"
+              ? property.properties
+              : property.items
+            )?.map((nested) => (
+              <PropertyEditor
+                key={nested.id}
+                property={nested}
+                onChange={updateNestedProperty}
+                onRemove={removeNestedProperty}
+              />
+            ))}
+          </div>
         </div>
       )}
 
