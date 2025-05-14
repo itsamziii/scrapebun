@@ -5,7 +5,7 @@ import { ThemeProvider } from "~/components/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import Navbar from "./_components/navbar";
 import { dark } from "@clerk/themes";
-
+import { CSPostHogProvider } from "./_analytics/provider";
 export const metadata: Metadata = {
   title: "ScrapeBun",
   description: "ScrapeBun",
@@ -31,23 +31,25 @@ export default function RootLayout({
         baseTheme: dark,
       }}
     >
-      <html
-        lang="en"
-        suppressHydrationWarning
-        className={`${geist.variable} scroll-smooth`}
-      >
-        <body className="overflow-x-hidden">
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <Navbar />
-            {children}
-          </ThemeProvider>
-        </body>
-      </html>
+      <CSPostHogProvider>
+        <html
+          lang="en"
+          suppressHydrationWarning
+          className={`${geist.variable} scroll-smooth`}
+        >
+          <body className="overflow-x-hidden">
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <Navbar />
+              {children}
+            </ThemeProvider>
+          </body>
+        </html>
+      </CSPostHogProvider>
     </ClerkProvider>
   );
 }
