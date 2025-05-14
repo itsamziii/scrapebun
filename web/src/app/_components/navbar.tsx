@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SignInButton, SignedOut, SignedIn, UserButton } from "@clerk/nextjs";
 import { Button } from "~/components/ui/button";
 import { Menu, X } from "lucide-react";
+import Logo from "~/components/logo";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -34,12 +35,10 @@ const Navbar = () => {
         <Link
           href="/"
           className="flex items-center space-x-2"
-          aria-label="AIgent Home"
+          aria-label="Scrapebun"
         >
-          <div className="from-ai-primary to-ai-light flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br">
-            <span className="text-xl font-bold text-white">A</span>
-          </div>
-          <span className="text-xl font-bold text-white">AIgent</span>
+          <Logo width={40} height={40} />
+          <span className="text-xl font-bold text-white">Scrapebun</span>
         </Link>
 
         <nav

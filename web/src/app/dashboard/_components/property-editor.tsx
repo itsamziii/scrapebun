@@ -132,7 +132,7 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
             <SelectTrigger className="border-white/10 bg-white/5 text-white">
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
-            <SelectContent className="bg-ai-dark border-white/10">
+            <SelectContent className="border-white/10 bg-black">
               <SelectItem value="string">String</SelectItem>
               <SelectItem value="number">Number</SelectItem>
               <SelectItem value="boolean">Boolean</SelectItem>
@@ -289,7 +289,7 @@ const NestedPropertyEditor: React.FC<NestedPropertyEditorProps> = ({
                 <SelectTrigger className="border-white/10 bg-white/5 text-white">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
-                <SelectContent className="bg-ai-dark border-white/10">
+                <SelectContent className="border-white/10 bg-black">
                   <SelectItem value="string">String</SelectItem>
                   <SelectItem value="number">Number</SelectItem>
                   <SelectItem value="boolean">Boolean</SelectItem>

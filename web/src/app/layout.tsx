@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   icons: [
     {
       rel: "icon",
-      url: "/favicon.ico",
+      url: "/logo.png",
     },
   ],
 };
@@ -31,8 +31,12 @@ export default function RootLayout({
         baseTheme: dark,
       }}
     >
-      <html lang="en" suppressHydrationWarning className={`${geist.variable}`}>
-        <body className="overflow-x-hidden scroll-smooth">
+      <html
+        lang="en"
+        suppressHydrationWarning
+        className={`${geist.variable} scroll-smooth`}
+      >
+        <body className="overflow-x-hidden">
           <ThemeProvider
             attribute="class"
             defaultTheme="system"

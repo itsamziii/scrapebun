@@ -1,6 +1,5 @@
 "use client";
-
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { ChangeEvent } from "react";
 import { Copy, FileJson, AlertCircle } from "lucide-react";
 import { PropertyEditor } from "./property-editor";
@@ -8,11 +7,12 @@ import { PropertyList } from "./property-list";
 import { ObjectPreview } from "./object-preview";
 import { v4 as uuidv4 } from "uuid";
 import type { Property, PropertyType } from "./property";
-import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { Button } from "~/components/ui/button";
 
-export const DataObjectBuilder: React.FC = () => {
+export const DataObjectBuilder: React.FC<{
+  onObjectChange?: (object: Record<string, any>) => void;
+}> = ({ onObjectChange }) => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(
     null,
@@ -21,6 +21,44 @@ export const DataObjectBuilder: React.FC = () => {
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [jsonInput, setJsonInput] = useState("");
   const [showImport, setShowImport] = useState(false);
+
+  const generateJsonObject = useCallback(() => {
+    const result: Record<string, any> = {};
+    const processProperty = (prop: Property): any => {
+      switch (prop.type) {
+        case "string":
+          return prop.value;
+        case "number":
+          return parseFloat(prop.value as string) || 0;
+        case "boolean":
+          return Boolean(prop.value);
+        case "array":
+          return (prop.items || []).map(processProperty);
+        case "object":
+          if (prop.properties && prop.properties.length > 0) {
+            const nestedObj: Record<string, any> = {};
+            prop.properties.forEach((nestedProp) => {
+              nestedObj[nestedProp.name] = processProperty(nestedProp);
+            });
+            return nestedObj;
+          }
+          return {};
+        default:
+          return prop.value;
+      }
+    };
+
+    properties.forEach((prop) => {
+      result[prop.name] = processProperty(prop);
+    });
+
+    return result;
+  }, [properties]);
+
+  useEffect(() => {
+    const generatedObject = generateJsonObject();
+    onObjectChange?.(generatedObject);
+  }, [properties, generateJsonObject, onObjectChange]);
 
   const addProperty = useCallback(() => {
     const newProperty: Property = {
@@ -61,40 +99,6 @@ export const DataObjectBuilder: React.FC = () => {
     },
     [],
   );
-
-  const generateJsonObject = useCallback(() => {
-    const result: Record<string, any> = {};
-
-    const processProperty = (prop: Property): any => {
-      switch (prop.type) {
-        case "string":
-          return prop.value;
-        case "number":
-          return parseFloat(prop.value as string) || 0;
-        case "boolean":
-          return Boolean(prop.value);
-        case "array":
-          return (prop.items || []).map(processProperty);
-        case "object":
-          if (prop.properties && prop.properties.length > 0) {
-            const nestedObj: Record<string, any> = {};
-            prop.properties.forEach((nestedProp) => {
-              nestedObj[nestedProp.name] = processProperty(nestedProp);
-            });
-            return nestedObj;
-          }
-          return {};
-        default:
-          return prop.value;
-      }
-    };
-
-    properties.forEach((prop) => {
-      result[prop.name] = processProperty(prop);
-    });
-
-    return result;
-  }, [properties]);
 
   const copyToClipboard = useCallback(() => {
     const jsonString = JSON.stringify(generateJsonObject(), null, 2);
@@ -231,7 +235,7 @@ export const DataObjectBuilder: React.FC = () => {
 
         {showImport && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="mx-4 w-full max-w-md rounded-lg border border-white/10 bg-white/5 p-6">
+            <div className="mx-4 w-full max-w-md rounded-lg border border-white/10 bg-black p-6">
               <h2 className="mb-2 text-lg font-semibold text-white">
                 Import JSON
               </h2>
@@ -278,21 +282,6 @@ export const DataObjectBuilder: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-
-      <div>
-        <div className="sticky top-4 rounded-lg border border-white/10 bg-white/5 p-4">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Output</h2>
-            <Button
-              onClick={copyToClipboard}
-              className={`flex items-center gap-1 rounded-md px-3 py-1.5 text-sm transition-colors ${copied ? "bg-green-600 text-white" : "bg-white/5 text-white hover:bg-white/10"}`}
-            >
-              <Copy size={16} /> {copied ? "Copied!" : "Copy JSON"}
-            </Button>
-          </div>
-          <ObjectPreview object={generateJsonObject()} />
-        </div>
       </div>
     </div>
   );
