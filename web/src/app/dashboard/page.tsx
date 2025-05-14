@@ -31,6 +31,8 @@ import {
   Zap,
   ArrowRight,
   Loader,
+  Plus,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { DataObjectBuilder } from "./_components/data-object-builder";
@@ -38,6 +40,9 @@ import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 
 type TaskType = "scrape" | "summarize" | null;
+type ScrapeType = "Single" | "Multiple" | null;
+type SingleOutputFormat = "JSON" | "CSV" | "Google Sheets" | null;
+type MultipleOutputFormat = "Vector DB" | "PostgreSQL" | null;
 type SummaryLength = "short" | "medium" | "long";
 type SummaryStyle = "informative" | "analytical" | "creative";
 
@@ -86,18 +91,37 @@ const TaskCard = ({
 
 const Dashboard = () => {
   const [taskType, setTaskType] = useState<TaskType>(null);
+  const [scrapeType, setScrapeType] = useState<ScrapeType>(null);
+  const [singleOutputFormat, setSingleOutputFormat] =
+    useState<SingleOutputFormat>(null);
+  const [multipleOutputFormat, setMultipleOutputFormat] =
+    useState<MultipleOutputFormat>(null);
   const [activeTab, setActiveTab] = useState("categories");
   const [scrapeUrl, setScrapeUrl] = useState("");
+  const [scrapeUrls, setScrapeUrls] = useState<string[]>([""]);
   const [textToSummarize, setTextToSummarize] = useState("");
   const [summaryLength, setSummaryLength] = useState<SummaryLength>("medium");
   const [summaryStyle, setSummaryStyle] = useState<SummaryStyle>("informative");
-  // for the object preview
   const [extractFields, setExtractFields] = useState<Record<string, any>>({});
 
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   console.log("extracted: ", extractFields);
+
+  const handleAddUrl = () => {
+    setScrapeUrls([...scrapeUrls, ""]);
+  };
+
+  const handleRemoveUrl = (index: number) => {
+    setScrapeUrls(scrapeUrls.filter((_, i) => i !== index));
+  };
+
+  const handleUrlChange = (index: number, value: string) => {
+    const newUrls = [...scrapeUrls];
+    newUrls[index] = value;
+    setScrapeUrls(newUrls);
+  };
 
   const handleRunTask = async () => {
     setLoading(true);
@@ -141,10 +165,19 @@ const Dashboard = () => {
 
     if (taskType === "scrape") {
       try {
+        const urls = scrapeType === "Multiple" ? scrapeUrls : [scrapeUrl];
         const res = await fetch("/api/scrape", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: scrapeUrl }),
+          body: JSON.stringify({
+            urls,
+            type: scrapeType,
+            fields: extractFields,
+            outputFormat:
+              scrapeType === "Multiple"
+                ? multipleOutputFormat
+                : singleOutputFormat,
+          }),
         });
 
         if (!res.ok) throw new Error("Failed to scrape website");
@@ -286,17 +319,129 @@ const Dashboard = () => {
                     <div className="space-y-6">
                       <div>
                         <label className="mb-1 block text-sm text-white/70">
-                          Website URL
+                          Select Type
                         </label>
-                        <Input
-                          value={scrapeUrl}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            setScrapeUrl(e.target.value)
+                        <Select
+                          value={scrapeType ?? undefined}
+                          onValueChange={(value) =>
+                            setScrapeType(value as ScrapeType)
                           }
-                          placeholder="https://example.com"
-                          className="border-white/10 bg-white/5 text-white"
-                        />
+                        >
+                          <SelectTrigger className="border-white/10 bg-white/5 text-white">
+                            <SelectValue placeholder="Choose type" />
+                          </SelectTrigger>
+                          <SelectContent className="border-white/10 bg-black">
+                            <SelectItem value="Single">Single Page</SelectItem>
+                            <SelectItem value="Multiple">
+                              Multiple Pages
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
+
+                      {scrapeType === "Single" ? (
+                        <>
+                          <div>
+                            <label className="mb-1 block text-sm text-white/70">
+                              Website URL
+                            </label>
+                            <Input
+                              value={scrapeUrl}
+                              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                setScrapeUrl(e.target.value)
+                              }
+                              placeholder="https://example.com"
+                              className="border-white/10 bg-white/5 text-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-sm text-white/70">
+                              Output Format
+                            </label>
+                            <Select
+                              value={singleOutputFormat ?? undefined}
+                              onValueChange={(value) =>
+                                setSingleOutputFormat(
+                                  value as SingleOutputFormat,
+                                )
+                              }
+                            >
+                              <SelectTrigger className="border-white/10 bg-white/5 text-white">
+                                <SelectValue placeholder="Select output format" />
+                              </SelectTrigger>
+                              <SelectContent className="border-white/10 bg-black">
+                                <SelectItem value="JSON">JSON</SelectItem>
+                                <SelectItem value="CSV">CSV</SelectItem>
+                                <SelectItem value="Google Sheets">
+                                  Google Sheets
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </>
+                      ) : scrapeType === "Multiple" ? (
+                        <>
+                          <div className="space-y-4">
+                            <label className="mb-1 block text-sm text-white/70">
+                              Website URLs
+                            </label>
+                            {scrapeUrls.map((url, index) => (
+                              <div key={index} className="flex gap-2">
+                                <Input
+                                  value={url}
+                                  onChange={(
+                                    e: ChangeEvent<HTMLInputElement>,
+                                  ) => handleUrlChange(index, e.target.value)}
+                                  placeholder="https://example.com"
+                                  className="border-white/10 bg-white/5 text-white"
+                                />
+                                {scrapeUrls.length > 1 && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleRemoveUrl(index)}
+                                    className="text-white/70 hover:text-white"
+                                  >
+                                    <X size={16} />
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
+                            <Button
+                              variant="outline"
+                              onClick={handleAddUrl}
+                              className="border-white/10 bg-white/5 text-white hover:bg-white/20"
+                            >
+                              <Plus size={16} className="mr-2" /> Add URL
+                            </Button>
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-sm text-white/70">
+                              Output Format
+                            </label>
+                            <Select
+                              value={multipleOutputFormat ?? undefined}
+                              onValueChange={(value) =>
+                                setMultipleOutputFormat(
+                                  value as MultipleOutputFormat,
+                                )
+                              }
+                            >
+                              <SelectTrigger className="border-white/10 bg-white/5 text-white">
+                                <SelectValue placeholder="Select output format" />
+                              </SelectTrigger>
+                              <SelectContent className="border-white/10 bg-black">
+                                <SelectItem value="Vector DB">
+                                  Vector DB
+                                </SelectItem>
+                                <SelectItem value="PostgreSQL">
+                                  PostgreSQL
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </>
+                      ) : null}
 
                       <div className="mt-6">
                         <label className="mb-1 block text-sm text-white/70">
