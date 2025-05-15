@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import type { ChangeEvent } from "react";
 import { Button } from "~/components/ui/button";
 import Navbar from "../_components/navbar";
@@ -37,6 +37,7 @@ import Link from "next/link";
 import { DataObjectBuilder } from "./_components/data-object-builder";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
+import zod from "zod";
 
 type TaskType = "scrape-single" | "scrape-multiple" | null;
 type ScrapeType = "Single" | "Multiple" | null;

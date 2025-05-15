@@ -1,34 +1,44 @@
-// import { createClient } from "@supabase/supabase-js";
-
-// export const supabase = createClient(
-//   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-//   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-// );
-// lib/supabaseClient.ts
-
+import { useSession } from "@clerk/nextjs";
 import { createClient } from "@supabase/supabase-js";
-import { useAuth } from "@clerk/nextjs";
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 
-export const useSupabaseWithClerk = () => {
-  const { getToken } = useAuth();
-
-  return useMemo(() => {
-    return createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          fetch: async (input: RequestInfo | URL, init: RequestInit = {}) => {
-            const token = await getToken({ template: "supabase" });
-            init.headers = {
-              ...init.headers,
-              Authorization: `Bearer ${token}`,
-            };
-            return fetch(input, init);
-          },
-        },
+export const createSupabaseClient = async () => {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_KEY!,
+    {
+      auth: {
+        persistSession: false,
       },
-    );
-  }, [getToken]);
+    },
+  );
+
+  return supabase;
+};
+
+export const useSupabase = () => {
+  const { session } = useSession();
+  const [supabase, setSupabase] = useState<any>(null);
+
+  useEffect(() => {
+    const initSupabase = async () => {
+      const client = await createSupabaseClient();
+
+      if (session) {
+        const token = await session.getToken({ template: "supabase" });
+        if (token) {
+          client.auth.setSession({
+            access_token: token,
+            refresh_token: "",
+          });
+        }
+      }
+
+      setSupabase(client);
+    };
+
+    initSupabase();
+  }, [session]);
+
+  return supabase;
 };

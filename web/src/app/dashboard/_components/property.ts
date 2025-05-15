@@ -10,9 +10,9 @@ export interface Property {
   id: string;
   name: string;
   type: PropertyType;
-  value: string | number | boolean | null;
+  value: string | number | boolean | null | Record<string, any> | any[];
   parentId?: string;
-  properties?: Property[]; 
-  items?: Property[]; 
+  properties?: Property[];
+  items?: Property[];
   arrayItemType?: PropertyType;
 }

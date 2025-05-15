@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   Trash2,
   ChevronDown,
-  ChevronUp,
   Plus,
   GripVertical,
   ChevronRight,
@@ -317,7 +316,7 @@ export const PropertyList: React.FC<PropertyListProps> = ({
               prop.type !== "null" && (
                 <span className="ml-2 max-w-[150px] truncate text-xs text-white/50">
                   {prop.type === "string" && `"${prop.value}"`}
-                  {prop.type === "number" && prop.value}
+                  {prop.type === "number" && 1}
                   {prop.type === "boolean" && (prop.value ? "true" : "false")}
                 </span>
               )}

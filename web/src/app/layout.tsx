@@ -26,30 +26,28 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <ClerkProvider
-      appearance={{
-        baseTheme: dark,
-      }}
-    >
-      <CSPostHogProvider>
-        <html
-          lang="en"
-          suppressHydrationWarning
-          className={`${geist.variable} scroll-smooth`}
-        >
-          <body className="overflow-x-hidden">
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
+    <>
+      <ClerkProvider
+        appearance={{
+          baseTheme: dark,
+        }}
+      >
+        <CSPostHogProvider>
+          <html lang="en" suppressHydrationWarning>
+            <body
+              className={`${geist.variable} overflow-x-hidden scroll-smooth`}
             >
-              <Navbar />
-              {children}
-            </ThemeProvider>
-          </body>
-        </html>
-      </CSPostHogProvider>
-    </ClerkProvider>
+              <ThemeProvider
+                attribute="class"
+                forcedTheme="dark"
+              >
+                <Navbar />
+                {children}
+              </ThemeProvider>
+            </body>
+          </html>
+        </CSPostHogProvider>
+      </ClerkProvider>
+    </>
   );
 }
