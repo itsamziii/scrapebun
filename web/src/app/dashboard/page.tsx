@@ -15,7 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { Textarea } from "~/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -39,12 +38,10 @@ import { DataObjectBuilder } from "./_components/data-object-builder";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
 
-type TaskType = "scrape" | "summarize" | null;
+type TaskType = "scrape-single" | "scrape-multiple" | null;
 type ScrapeType = "Single" | "Multiple" | null;
 type SingleOutputFormat = "JSON" | "CSV" | "Google Sheets" | null;
 type MultipleOutputFormat = "Vector DB" | "PostgreSQL" | null;
-type SummaryLength = "short" | "medium" | "long";
-type SummaryStyle = "informative" | "analytical" | "creative";
 
 interface TaskCardProps {
   icon: React.ReactNode;
@@ -99,10 +96,13 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("categories");
   const [scrapeUrl, setScrapeUrl] = useState("");
   const [scrapeUrls, setScrapeUrls] = useState<string[]>([""]);
-  const [textToSummarize, setTextToSummarize] = useState("");
-  const [summaryLength, setSummaryLength] = useState<SummaryLength>("medium");
-  const [summaryStyle, setSummaryStyle] = useState<SummaryStyle>("informative");
   const [extractFields, setExtractFields] = useState<Record<string, any>>({});
+  const [scrapeStatus, setScrapeStatus] = useState<
+    "idle" | "running" | "success" | "error"
+  >("idle");
+  const [scrapeHistory, setScrapeHistory] = useState<
+    { id: string; timestamp: string; status: "running" | "success" | "error" }[]
+  >([]);
 
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -125,56 +125,27 @@ const Dashboard = () => {
 
   const handleRunTask = async () => {
     setLoading(true);
+    const taskId = uuidv4();
 
-    if (taskType === "summarize") {
+    if (taskType === "scrape-single" || taskType === "scrape-multiple") {
+      setScrapeStatus("running");
+      setScrapeHistory((prev) => [
+        ...prev,
+        { id: taskId, timestamp: new Date().toISOString(), status: "running" },
+      ]);
+      setActiveTab("history");
+
       try {
-        const res = await fetch("/api/summarize", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text: textToSummarize,
-            length: summaryLength,
-            style: summaryStyle,
-          }),
-        });
-
-        if (!res.ok) throw new Error("Failed to summarize text");
-
-        const data = await res.json();
-        const transformed = {
-          title: "Summary",
-          timestamp: new Date().toISOString(),
-          results: [
-            {
-              id: uuidv4(),
-              content: data.summary,
-            },
-          ],
-        };
-
-        if (typeof window !== "undefined" && data.summary) {
-          localStorage.setItem("summarizeResult", JSON.stringify(transformed));
-          router.push("/result");
-        } else {
-          console.error("No summary found in API response");
-        }
-      } catch (error) {
-        console.error("Error running summarize task:", error);
-      }
-    }
-
-    if (taskType === "scrape") {
-      try {
-        const urls = scrapeType === "Multiple" ? scrapeUrls : [scrapeUrl];
+        const urls = taskType === "scrape-multiple" ? scrapeUrls : [scrapeUrl];
         const res = await fetch("/api/scrape", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             urls,
-            type: scrapeType,
+            type: taskType === "scrape-multiple" ? "Multiple" : "Single",
             fields: extractFields,
             outputFormat:
-              scrapeType === "Multiple"
+              taskType === "scrape-multiple"
                 ? multipleOutputFormat
                 : singleOutputFormat,
           }),
@@ -182,44 +153,49 @@ const Dashboard = () => {
 
         if (!res.ok) throw new Error("Failed to scrape website");
 
-        const result = await res.json();
-        localStorage.setItem("summarizeResult", JSON.stringify(result));
-        router.push("/result");
+        setScrapeStatus("success");
+        setScrapeHistory((prev) =>
+          prev.map((t) => (t.id === taskId ? { ...t, status: "success" } : t)),
+        );
       } catch (error) {
         console.error("Error running scrape task:", error);
+        setScrapeStatus("error");
+        setScrapeHistory((prev) =>
+          prev.map((t) => (t.id === taskId ? { ...t, status: "error" } : t)),
+        );
       }
     }
-
     setLoading(false);
   };
 
   const handleTaskSelect = useCallback((type: TaskType) => {
     setTaskType(type);
     setActiveTab("custom");
+    setScrapeType(type === "scrape-single" ? "Single" : "Multiple");
   }, []);
 
   const taskCards = [
     {
       icon: <Globe className="text-ai-primary" />,
-      title: "Web Scraper",
+      title: "Web Scraper Single Page",
       description: "Extract structured data from websites automatically.",
       features: [
         "Scrape tables, lists, and text",
         "Export as CSV, JSON, or Excel",
         "Handle pagination and authentication",
       ],
-      onSelect: () => handleTaskSelect("scrape"),
+      onSelect: () => handleTaskSelect("scrape-single"),
     },
     {
       icon: <FileText className="text-ai-primary" />,
-      title: "Text Summarizer",
-      description: "Generate concise summaries from long documents.",
+      title: "Web Scraper Multiple Pages",
+      description: "Scrape multiple pages of a website automatically.",
       features: [
-        "Summarize documents and articles",
-        "Adjust summary length and focus",
-        "Maintain key information and context",
+        "Scrape tables, lists, and text",
+        "Export as Vector DB or PostgreSQL, ",
+        "Handle pagination and authentication",
       ],
-      onSelect: () => handleTaskSelect("summarize"),
+      onSelect: () => handleTaskSelect("scrape-multiple"),
     },
   ];
 
@@ -297,38 +273,18 @@ const Dashboard = () => {
                         <SelectValue placeholder="Choose task" />
                       </SelectTrigger>
                       <SelectContent className="border-white/10 bg-black">
-                        <SelectItem value="scrape">Scrape Website</SelectItem>
-                        <SelectItem value="summarize">
-                          Summarize Text
+                        <SelectItem value="scrape-single">
+                          Single Page Scrape
+                        </SelectItem>
+                        <SelectItem value="scrape-multiple">
+                          Multiple Pages Scrape
                         </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {taskType === "scrape" && (
+                  {taskType === "scrape-single" && (
                     <div className="space-y-6">
-                      <div>
-                        <label className="mb-1 block text-sm text-white/70">
-                          Select Type
-                        </label>
-                        <Select
-                          value={scrapeType ?? undefined}
-                          onValueChange={(value) =>
-                            setScrapeType(value as ScrapeType)
-                          }
-                        >
-                          <SelectTrigger className="border-white/10 bg-white/5 text-white">
-                            <SelectValue placeholder="Choose type" />
-                          </SelectTrigger>
-                          <SelectContent className="border-white/10 bg-black">
-                            <SelectItem value="Single">Single Page</SelectItem>
-                            <SelectItem value="Multiple">
-                              Multiple Pages
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
                       {scrapeType === "Single" ? (
                         <>
                           <div>
@@ -342,6 +298,7 @@ const Dashboard = () => {
                               }
                               placeholder="https://example.com"
                               className="border-white/10 bg-white/5 text-white"
+                              required
                             />
                           </div>
                           <div>
@@ -369,141 +326,82 @@ const Dashboard = () => {
                             </Select>
                           </div>
                         </>
-                      ) : scrapeType === "Multiple" ? (
-                        <>
-                          <div className="space-y-4">
-                            <label className="mb-1 block text-sm text-white/70">
-                              Website URLs
-                            </label>
-                            {scrapeUrls.map((url, index) => (
-                              <div key={index} className="flex gap-2">
-                                <Input
-                                  value={url}
-                                  onChange={(
-                                    e: ChangeEvent<HTMLInputElement>,
-                                  ) => handleUrlChange(index, e.target.value)}
-                                  placeholder="https://example.com"
-                                  className="border-white/10 bg-white/5 text-white"
-                                />
-                                {scrapeUrls.length > 1 && (
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleRemoveUrl(index)}
-                                    className="text-white/70 hover:text-white"
-                                  >
-                                    <X size={16} />
-                                  </Button>
-                                )}
-                              </div>
-                            ))}
-                            <Button
-                              variant="outline"
-                              onClick={handleAddUrl}
-                              className="border-white/10 bg-white/5 text-white hover:bg-white/20"
-                            >
-                              <Plus size={16} className="mr-2" /> Add URL
-                            </Button>
-                          </div>
-                          <div>
-                            <label className="mb-1 block text-sm text-white/70">
-                              Output Format
-                            </label>
-                            <Select
-                              value={multipleOutputFormat ?? undefined}
-                              onValueChange={(value) =>
-                                setMultipleOutputFormat(
-                                  value as MultipleOutputFormat,
-                                )
-                              }
-                            >
-                              <SelectTrigger className="border-white/10 bg-white/5 text-white">
-                                <SelectValue placeholder="Select output format" />
-                              </SelectTrigger>
-                              <SelectContent className="border-white/10 bg-black">
-                                <SelectItem value="Vector DB">
-                                  Vector DB
-                                </SelectItem>
-                                <SelectItem value="PostgreSQL">
-                                  PostgreSQL
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </>
                       ) : null}
 
                       <div className="mt-6">
                         <label className="mb-1 block text-sm text-white/70">
-                      Select Fields
+                          Select Fields
                         </label>
                         <DataObjectBuilder onObjectChange={setExtractFields} />
                       </div>
                     </div>
                   )}
 
-                  {taskType === "summarize" && (
+                  {taskType === "scrape-multiple" && (
                     <div className="space-y-6">
+                      <div className="space-y-4">
+                        <label className="mb-1 block text-sm text-white/70">
+                          Website URLs
+                        </label>
+                        {scrapeUrls.map((url, index) => (
+                          <div key={index} className="flex gap-2">
+                            <Input
+                              value={url}
+                              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                handleUrlChange(index, e.target.value)
+                              }
+                              placeholder="https://example.com"
+                              className="border-white/10 bg-white/5 text-white"
+                              required
+                            />
+                            {scrapeUrls.length > 1 && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleRemoveUrl(index)}
+                                className="text-white/70 hover:text-white"
+                              >
+                                <X size={16} />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                        <Button
+                          variant="outline"
+                          onClick={handleAddUrl}
+                          className="border-white/10 bg-white/5 text-white hover:bg-white/20"
+                        >
+                          <Plus size={16} className="mr-2" /> Add URL
+                        </Button>
+                      </div>
                       <div>
                         <label className="mb-1 block text-sm text-white/70">
-                          Text to Summarize
+                          Output Format
                         </label>
-                        <Textarea
-                          value={textToSummarize}
-                          onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                            setTextToSummarize(e.target.value)
+                        <Select
+                          value={multipleOutputFormat ?? undefined}
+                          onValueChange={(value) =>
+                            setMultipleOutputFormat(
+                              value as MultipleOutputFormat,
+                            )
                           }
-                          placeholder="Paste or type your text here..."
-                          className="h-32 resize-none border-white/10 bg-white/5 text-white"
-                        />
+                        >
+                          <SelectTrigger className="border-white/10 bg-white/5 text-white">
+                            <SelectValue placeholder="Select output format" />
+                          </SelectTrigger>
+                          <SelectContent className="border-white/10 bg-black">
+                            <SelectItem value="Vector DB">Vector DB</SelectItem>
+                            <SelectItem value="PostgreSQL">
+                              PostgreSQL
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
-                          <label className="mb-1 block text-sm text-white/70">
-                            Summary Length
-                          </label>
-                          <Select
-                            value={summaryLength}
-                            onValueChange={(value: SummaryLength) =>
-                              setSummaryLength(value)
-                            }
-                          >
-                            <SelectTrigger className="border-white/10 bg-white/5 text-white">
-                              <SelectValue placeholder="Select length" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-ai-dark border-white/10">
-                              <SelectItem value="short">Short</SelectItem>
-                              <SelectItem value="medium">Medium</SelectItem>
-                              <SelectItem value="long">Long</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <label className="mb-1 block text-sm text-white/70">
-                            Summary Style
-                          </label>
-                          <Select
-                            value={summaryStyle}
-                            onValueChange={(value: SummaryStyle) =>
-                              setSummaryStyle(value)
-                            }
-                          >
-                            <SelectTrigger className="border-white/10 bg-white/5 text-white">
-                              <SelectValue placeholder="Select style" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-ai-dark border-white/10">
-                              <SelectItem value="informative">
-                                Informative
-                              </SelectItem>
-                              <SelectItem value="analytical">
-                                Analytical
-                              </SelectItem>
-                              <SelectItem value="creative">Creative</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+                      <div className="mt-6">
+                        <label className="mb-1 block text-sm text-white/70">
+                          Select Fields
+                        </label>
+                        <DataObjectBuilder onObjectChange={setExtractFields} />
                       </div>
                     </div>
                   )}
@@ -528,17 +426,48 @@ const Dashboard = () => {
             </TabsContent>
 
             <TabsContent value="history">
-              <div className="glass-morphism rounded-lg border-white/10 p-6 text-center">
+              {scrapeHistory.length === 0 ? (
                 <p className="text-white/70">
                   You haven't generated any results yet.
                 </p>
-                <Button
-                  className="mt-4 bg-white/10 text-white hover:bg-white/20"
-                  onClick={() => setActiveTab("categories")}
-                >
-                  Start your first task
-                </Button>
-              </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {scrapeHistory.map((task) => (
+                    <Card
+                      key={task.id}
+                      className={`border-white/10 ${
+                        task.status === "running"
+                          ? "border-blue-500"
+                          : task.status === "success"
+                            ? "border-green-500"
+                            : "border-red-500"
+                      }`}
+                    >
+                      <CardHeader>
+                        <CardTitle className="text-white">
+                          Scrape Task
+                        </CardTitle>
+                        <CardDescription className="text-white/70">
+                          {new Date(task.timestamp).toLocaleString()}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <p
+                          className={`text-sm ${
+                            task.status === "running"
+                              ? "text-blue-400"
+                              : task.status === "success"
+                                ? "text-green-400"
+                                : "text-red-400"
+                          }`}
+                        >
+                          Status: {task.status}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>

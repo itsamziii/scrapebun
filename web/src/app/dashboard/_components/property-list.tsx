@@ -33,9 +33,6 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
   onRemove,
 }) => {
   const [isNested, setIsNested] = useState(false);
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const dragOverItemIndex = useRef<number | null>(null);
 
   useEffect(() => {
     setIsNested(property.type === "object" || property.type === "array");
@@ -124,7 +121,7 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label className="mb-1 block text-sm text-white/70">
-              Property Name
+              Field Name
             </label>
             <Input
               value={property.name}
@@ -148,7 +145,6 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
                 <SelectItem value="boolean">Boolean</SelectItem>
                 <SelectItem value="object">Object</SelectItem>
                 <SelectItem value="array">Array</SelectItem>
-                <SelectItem value="null">Null</SelectItem>
               </SelectContent>
             </Select>
           </div>

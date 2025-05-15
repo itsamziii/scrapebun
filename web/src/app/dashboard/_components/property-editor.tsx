@@ -487,6 +487,7 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
             </div>
           )}
 
+          {/* check */}
           {property.type === "object" &&
             property.properties &&
             property.properties.map((nestedProp) => (
