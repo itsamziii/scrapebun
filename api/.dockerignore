@@ -1,9 +1,0 @@
-Dockerfile
-.dockerignore
-.pre-commit-config.yaml
-.gitignore
-.venv
-.pytest_cache
-__pycache__
-LICENSE
-README.md
