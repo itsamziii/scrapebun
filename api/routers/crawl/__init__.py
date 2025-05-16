@@ -34,6 +34,7 @@ class CrawlRequest(BaseModel):
 
 class CrawlResponse(BaseModel):
     message: str
+    task_id: str
     response: Dict[str, Any] | None = None
 
 
@@ -74,6 +75,7 @@ async def crawl(payload: CrawlRequest) -> CrawlResponse:
         if not results.success:
             return CrawlResponse(
                 message="Crawl request failed",
+                task_id=req["task_id"],
                 response=results.error_message,
             )
 
@@ -82,17 +84,20 @@ async def crawl(payload: CrawlRequest) -> CrawlResponse:
         if payload.output_type == "json":
             return CrawlResponse(
                 message="Crawl request received",
+                task_id=req["task_id"],
                 response=output,
             )
 
         if payload.output_type == "csv":
             return CrawlResponse(
                 message="Crawl request received",
+                task_id=req["task_id"],
                 response=json_to_csv(output),
             )
 
         return CrawlResponse(
             message="Crawl request received",
+            task_id=req["task_id"],
             response=output,
         )
 
