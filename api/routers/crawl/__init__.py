@@ -1,5 +1,6 @@
 import os
-from typing import Dict, Any, List
+import json
+from typing import Dict, Any, List, Literal
 from fastapi import APIRouter
 from pydantic import BaseModel
 from crawl4ai import (
@@ -11,6 +12,8 @@ from crawl4ai import (
     LLMExtractionStrategy,
     LLMConfig,
 )
+
+from utils import json_to_csv
 
 crawl_router = APIRouter(prefix="/crawl", tags=["crawl"])
 
@@ -25,6 +28,7 @@ class CrawlRequest(BaseModel):
     url: str
     instruction: str
     data_schema: Dict[str, Any]
+    output_type: Literal["json", "csv"] = "json"
     screenshot: bool = False
 
 
@@ -43,7 +47,7 @@ async def crawl(payload: CrawlRequest) -> CrawlResponse:
         # For some reason, this is required to be called
         await client.authenticate("hello@example.com")
 
-        results: CrawlRequest = await client.crawl(
+        results: CrawlResult = await client.crawl(
             [req["url"]],
             browser_config=browser_config,
             crawler_config=CrawlerRunConfig(
@@ -67,20 +71,30 @@ async def crawl(payload: CrawlRequest) -> CrawlResponse:
             ),
         )
 
-        # "fit_html" is a property that is not serializable
-        results.fit_html = None
-
-        output = results.extracted_content
-
-        if results and results.success:
-            return CrawlResponse(
-                message="Crawl request received",
-                response=results.model_dump(),
-            )
-        else:
+        if not results.success:
             return CrawlResponse(
                 message="Crawl request failed",
+                response=results.error_message,
             )
+
+        output = json.loads(results.extracted_content)
+
+        if payload.output_type == "json":
+            return CrawlResponse(
+                message="Crawl request received",
+                response=output,
+            )
+
+        if payload.output_type == "csv":
+            return CrawlResponse(
+                message="Crawl request received",
+                response=json_to_csv(output),
+            )
+
+        return CrawlResponse(
+            message="Crawl request received",
+            response=output,
+        )
 
 
 class DomainCrawlerRequest(BaseModel):
