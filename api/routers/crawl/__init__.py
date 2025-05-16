@@ -21,6 +21,7 @@ browser_config = BrowserConfig(
 
 
 class CrawlRequest(BaseModel):
+    task_id: str
     url: str
     instruction: str
     data_schema: Dict[str, Any]
@@ -83,6 +84,7 @@ async def crawl(payload: CrawlRequest) -> CrawlResponse:
 
 
 class DomainCrawlerRequest(BaseModel):
+    task_id: str
     urls: List[str]
 
 
