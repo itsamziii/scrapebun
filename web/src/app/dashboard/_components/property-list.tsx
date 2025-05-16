@@ -8,7 +8,7 @@ import {
   GripVertical,
   ChevronRight,
 } from "lucide-react";
-import type { Property, PropertyType } from "./property";
+import type { Property, PropertyType } from "../../../lib/types";
 import { v4 as uuidv4 } from "uuid";
 import { Input } from "~/components/ui/input";
 import {

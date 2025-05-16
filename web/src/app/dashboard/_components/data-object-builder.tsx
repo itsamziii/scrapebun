@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from "react";
 import { PropertyEditor } from "./property-editor";
 import { PropertyList } from "./property-list";
 import { v4 as uuidv4 } from "uuid";
-import type { Property } from "./property";
+import type { Property } from "../../../lib/types";
 import { Button } from "~/components/ui/button";
 
 export const DataObjectBuilder: React.FC<{

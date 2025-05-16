@@ -17,7 +17,7 @@ const HeroSection = () => {
             Introducing AIgent Platform v2.0
           </span>
         </div> */}
-        <h1 className="text-gradient animate-float mx-auto mb-6 max-w-4xl text-4xl leading-tight font-bold md:text-6xl lg:text-7xl mt-20">
+        <h1 className="text-gradient animate-float mx-auto mt-20 mb-6 max-w-4xl text-4xl leading-tight font-bold md:text-6xl lg:text-7xl">
           AI Agents That Work For You, Not The Other Way Around
         </h1>
         <p className="mx-auto mb-8 max-w-2xl text-lg text-white/70 md:text-xl">
@@ -57,7 +57,7 @@ const HeroSection = () => {
             style={{ animationDelay: "0.6s" }}
           >
             <p className="mb-1 text-3xl font-bold text-white">15k+</p>
-            <p className="text-sm text-white/50">Data Requests Handled</p>
+            <p className="text-sm text-white/50">Inferences Gathered</p>
           </div>
         </div>
       </div>

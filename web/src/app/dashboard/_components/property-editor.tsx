@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Trash2, ChevronDown, ChevronUp, Plus } from "lucide-react";
-import type { Property, PropertyType } from "./property";
+import type { Property, PropertyType } from "../../../lib/types";
 import { v4 as uuidv4 } from "uuid";
 import { Input } from "~/components/ui/input";
 import {
