@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import crawl_router
+from routers import crawl_router, domain_router
 
 load_dotenv()
 
@@ -21,6 +21,7 @@ def create_app():
     )
 
     app.include_router(crawl_router)
+    app.include_router(domain_router)
 
     return app
 
