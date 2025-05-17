@@ -35,7 +35,7 @@ class CrawlRequest(BaseModel):
 class CrawlResponse(BaseModel):
     message: str
     task_id: str
-    response: List[Dict[str, Any]] | None = None
+    response: List[Dict[str, Any]] | str | None = None
 
 
 @crawl_router.post("/", response_model=CrawlResponse)

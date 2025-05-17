@@ -102,7 +102,9 @@ async def process_and_save_markdown(markdown: str, url: str) -> List[ProcessedCh
     return processed_tasks
 
 
-async def process_domain_results(results: List[CrawlResult]) -> List[List[ProcessedChunk]]:
+async def process_domain_results(
+    results: List[CrawlResult],
+) -> List[List[ProcessedChunk]]:
     """
     Processes a list of CrawlResult objects concurrently and returns structured data.
     """
