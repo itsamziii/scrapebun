@@ -13,5 +13,6 @@ export function CSPostHogProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
+  // return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
+  return <>{children}</>;
 }

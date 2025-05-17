@@ -139,7 +139,8 @@ const Dashboard = () => {
           data_schema: extractFields,
           output_type: outputFormat.toLowerCase(),
         };
-        res = await fetch("http://localhost:9999/api/crawl/", {
+
+        res = await fetch("http://localhost:5000/api/crawl/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -204,7 +205,10 @@ const Dashboard = () => {
         // });
       }
 
-      if (!res.ok) throw new Error("Failed to scrape website");
+      if (!res.ok) {
+        console.log(await res.json());
+        throw new Error("Failed to scrape website");
+      }
 
       const result = (await res.json()) as Record<string, unknown>;
       console.log("result: ", result);
