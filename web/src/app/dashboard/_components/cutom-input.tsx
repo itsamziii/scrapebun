@@ -32,7 +32,7 @@ interface CustomInputCardProps {
   multipleOutputFormat: MultipleOutputFormat;
   setTaskType: (type: TaskType) => void;
   setScrapeUrl: (url: string) => void;
-  setExtractFields: (fields: Record<string, any>) => void;
+  setExtractFields: (fields: Record<string, unknown>) => void;
   setSingleOutputFormat: (format: SingleOutputFormat) => void;
   setMultipleOutputFormat: (format: MultipleOutputFormat) => void;
   handleRunTask: () => void;
@@ -76,7 +76,7 @@ export const CustomInputCard: React.FC<CustomInputCardProps> = ({
   );
 
   const handleExtractFieldsChange = useCallback(
-    (object: Record<string, any>) => {
+    (object: Record<string, unknown>) => {
       setExtractFields(object);
     },
     [setExtractFields],
@@ -210,7 +210,7 @@ export const CustomInputCard: React.FC<CustomInputCardProps> = ({
             <Loader className="mr-2" size={16} />
           ) : (
             <Sparkles className="mr-2" size={16} />
-          )}{" "}
+          )}
           Submit Task
         </Button>
       </CardFooter>

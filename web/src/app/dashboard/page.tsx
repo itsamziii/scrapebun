@@ -15,50 +15,34 @@ import { taskCards } from "../../constants";
 import { useTask } from "../../hooks/useTask";
 import type {
   TaskType,
-  ScrapeType,
   SingleOutputFormat,
   MultipleOutputFormat,
 } from "../../lib/types";
 import TaskCard from "./_components/task-card";
+import { createTask } from "~/lib/queries/createTask";
 
 const Dashboard = () => {
   const { getToken } = useAuth();
   const {
     userId,
-    currentTaskId,
     scrapeHistory,
     loading,
     setLoading,
     setScrapeStatus,
-    validateUrls,
     updateTaskStatus,
-    handleTaskSelect,
   } = useTask();
 
-  const [taskType, setTaskType] = useState<TaskType>(null);
-  const [scrapeType, setScrapeType] = useState<ScrapeType>(null);
+  const [instruction, setInstruction] = useState("");
+  const [taskType, setTaskType] = useState<TaskType>("single");
   const [singleOutputFormat, setSingleOutputFormat] =
-    useState<SingleOutputFormat>(null);
+    useState<SingleOutputFormat>("JSON");
   const [multipleOutputFormat, setMultipleOutputFormat] =
-    useState<MultipleOutputFormat>(null);
+    useState<MultipleOutputFormat>("Vector DB");
   const [activeTab, setActiveTab] = useState("categories");
   const [scrapeUrl, setScrapeUrl] = useState("");
-  const [scrapeUrls, setScrapeUrls] = useState<string[]>([""]);
-  const [extractFields, setExtractFields] = useState<Record<string, any>>({});
-
-  const handleAddUrl = () => {
-    setScrapeUrls([...scrapeUrls, ""]);
-  };
-
-  const handleRemoveUrl = (index: number) => {
-    setScrapeUrls(scrapeUrls.filter((_, i) => i !== index));
-  };
-
-  const handleUrlChange = (index: number, value: string) => {
-    const newUrls = [...scrapeUrls];
-    newUrls[index] = value;
-    setScrapeUrls(newUrls);
-  };
+  const [extractFields, setExtractFields] = useState<Record<string, unknown>>(
+    {},
+  );
 
   const handleRunTask = async () => {
     const token = await getToken();
@@ -76,16 +60,6 @@ const Dashboard = () => {
       return;
     }
 
-    if (taskType === "multiple" && scrapeUrls.some((url) => !url)) {
-      toast.error("Please fill in all URLs");
-      return;
-    }
-
-    const urls = taskType === "multiple" ? scrapeUrls : [scrapeUrl];
-    if (!validateUrls(urls)) {
-      return;
-    }
-
     const outputFormat =
       taskType === "multiple" ? multipleOutputFormat : singleOutputFormat;
 
@@ -94,7 +68,7 @@ const Dashboard = () => {
       return;
     }
 
-    if (Object.keys(extractFields).length === 0) {
+    if (taskType === "single" && Object.keys(extractFields).length === 0) {
       toast.error("Please specify at least one field to extract");
       return;
     }
@@ -102,48 +76,61 @@ const Dashboard = () => {
     setLoading(true);
     setActiveTab("history");
 
-    if (taskType === "single" || taskType === "multiple") {
-      setScrapeStatus("running");
+    setScrapeStatus("running");
 
-      try {
-        if (!userId || !token) {
-          throw new Error("User ID or token not found");
-        }
+    let taskId = "";
 
-        const res = await fetch("/api/scrape", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            urls,
-            type: taskType === "multiple" ? "Multiple" : "Single",
-            fields: extractFields,
-            outputFormat,
-          }),
-        });
-
-        if (!res.ok) throw new Error("Failed to scrape website");
-
-        const result = await res.json();
-        setScrapeStatus("success");
-        if (currentTaskId) {
-          await updateTaskStatus(
-            currentTaskId,
-            "success",
-            JSON.stringify(result),
-          );
-        }
-      } catch (error) {
-        console.error("Error running scrape task:", error);
-        setScrapeStatus("error");
-        if (currentTaskId) {
-          await updateTaskStatus(
-            currentTaskId,
-            "error",
-            error instanceof Error ? error.message : "Unknown error",
-          );
-        }
-        toast.error("Failed to run the scraping task");
+    try {
+      if (!userId || !token) {
+        throw new Error("User ID or token not found");
       }
+
+      /**
+       * PEHLE CREATE TASK RUN KAR IDHAR USSE TASK ID LE
+       * USKE BAAD USER KO HISTORY PAR REREDIRECT KARNA HAI
+       */
+
+      taskId = await createTask(userId, token, taskType)
+
+      let res;
+
+      if (taskType === "single") {
+        /**
+         * > SINGLE SCRAPING TASK
+         * AB YAHA API CALL KAR
+         */
+        res = await fetch("/hello");
+      } else {
+        /**
+         * > MULTIPLE SCRAPING TASK
+         * AB YAHA API CALL KAR
+         */
+        res = await fetch("/hello");
+      }
+
+      if (!res.ok) throw new Error("Failed to scrape website");
+
+      const result = (await res.json()) as Record<string, unknown>;
+
+      setScrapeStatus("success");
+
+      /**
+       * AB UPDATE TASK STATUS KARNA HAI
+       */
+
+      await updateTaskStatus(taskId, "success", JSON.stringify(result));
+    } catch (error) {
+      console.error("Error running scrape task:", error);
+      setScrapeStatus("error");
+
+      if (taskId)
+        await updateTaskStatus(
+          taskId,
+          "error",
+          error instanceof Error ? error.message : "Unknown error",
+        );
+
+      toast.error("Failed to run the scraping task");
     }
     setLoading(false);
   };
@@ -151,8 +138,6 @@ const Dashboard = () => {
   const onTaskSelect = (type: TaskType) => {
     setTaskType(type);
     setActiveTab("custom");
-    setScrapeType(type === "single" ? "Single" : "Multiple");
-    handleTaskSelect(type);
   };
 
   return (
@@ -216,8 +201,8 @@ const Dashboard = () => {
               <CustomInputCard
                 taskType={taskType}
                 scrapeUrl={scrapeUrl}
-                scrapeUrls={scrapeUrls}
-                scrapeType={scrapeType}
+                instruction={instruction}
+                setInstruction={setInstruction}
                 singleOutputFormat={singleOutputFormat}
                 setTaskType={setTaskType}
                 setScrapeUrl={setScrapeUrl}
@@ -225,9 +210,6 @@ const Dashboard = () => {
                 setSingleOutputFormat={setSingleOutputFormat}
                 multipleOutputFormat={multipleOutputFormat}
                 setMultipleOutputFormat={setMultipleOutputFormat}
-                handleUrlChange={handleUrlChange}
-                handleAddUrl={handleAddUrl}
-                handleRemoveUrl={handleRemoveUrl}
                 handleRunTask={handleRunTask}
                 loading={loading}
               />

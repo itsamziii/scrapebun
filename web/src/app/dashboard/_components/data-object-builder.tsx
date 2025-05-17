@@ -7,7 +7,7 @@ import type { Property } from "../../../lib/types";
 import { Button } from "~/components/ui/button";
 
 export const DataObjectBuilder: React.FC<{
-  onObjectChange?: (object: Record<string, any>) => void;
+  onObjectChange?: (object: Record<string, unknown>) => void;
 }> = ({ onObjectChange }) => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(
@@ -15,8 +15,8 @@ export const DataObjectBuilder: React.FC<{
   );
 
   const generateJsonObject = useCallback(() => {
-    const result: Record<string, any> = {};
-    const processProperty = (prop: Property): any => {
+    const result: Record<string, unknown> = {};
+    const processProperty = (prop: Property): unknown => {
       switch (prop.type) {
         case "string":
           return prop.value;
@@ -25,10 +25,10 @@ export const DataObjectBuilder: React.FC<{
         case "boolean":
           return Boolean(prop.value);
         case "array":
-          return (prop.items || []).map(processProperty);
+          return (prop.items ?? []).map(processProperty);
         case "object":
           if (prop.properties && prop.properties.length > 0) {
-            const nestedObj: Record<string, any> = {};
+            const nestedObj: Record<string, unknown> = {};
             prop.properties.forEach((nestedProp) => {
               nestedObj[nestedProp.name] = processProperty(nestedProp);
             });
@@ -110,8 +110,8 @@ export const DataObjectBuilder: React.FC<{
           {properties.length === 0 ? (
             <div className="py-8 text-center text-white/50">
               <p>
-                No properties added yet. Click "Add Field" to start building
-                your object.
+                No properties added yet. Click &quot;Add Field&quot; to start
+                building your object.
               </p>
             </div>
           ) : (

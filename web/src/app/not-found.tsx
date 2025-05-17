@@ -6,7 +6,6 @@ import { Button } from "~/components/ui/button";
 import { motion } from "framer-motion";
 import OrbScene from "./_components/orbScene";
 import Navbar from "./_components/navbar";
-import Footer from "./_components/footer";
 
 const NotFound = () => {
   const router = useRouter();
@@ -51,8 +50,8 @@ const NotFound = () => {
         >
           <h2 className="mb-6 text-3xl font-bold">Page Not Found</h2>
           <p className="text-muted-foreground mb-6 text-lg">
-            We couldn't find the page you were looking for. Perhaps you took a
-            wrong turn in digital space.
+            We couldn&apos;t find the page you were looking for. Perhaps you
+            took a wrong turn in digital space.
           </p>
 
           <div className="mb-6">

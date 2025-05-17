@@ -32,14 +32,14 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
   }, [property.type]);
 
   const handleTypeChange = (newType: PropertyType) => {
-    let updatedProperty = { ...property, type: newType };
+    const updatedProperty = { ...property, type: newType };
 
     if (newType === "object") {
-      updatedProperty.properties = updatedProperty.properties || [];
+      updatedProperty.properties = updatedProperty.properties ?? [];
       delete updatedProperty.items;
       updatedProperty.value = {};
     } else if (newType === "array") {
-      updatedProperty.items = updatedProperty.items || [];
+      updatedProperty.items = updatedProperty.items ?? [];
       delete updatedProperty.properties;
       updatedProperty.value = [];
     } else {
@@ -62,7 +62,7 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
 
   const addNestedProperty = () => {
     if (property.type === "object") {
-      const newProperties = [...(property.properties || [])];
+      const newProperties = [...(property.properties ?? [])];
       newProperties.push({
         id: uuidv4(),
         name: `property${newProperties.length + 1}`,
@@ -72,7 +72,7 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
       });
       onChange({ ...property, properties: newProperties });
     } else if (property.type === "array") {
-      const newItems = [...(property.items || [])];
+      const newItems = [...(property.items ?? [])];
       newItems.push({
         id: uuidv4(),
         name: String(newItems.length),
@@ -170,8 +170,7 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
           )}
 
           {property.type === "object" &&
-            property.properties &&
-            property.properties.map((nestedProp) => (
+            property.properties?.map((nestedProp) => (
               <NestedPropertyEditor
                 key={nestedProp.id}
                 property={nestedProp}
@@ -182,8 +181,7 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
             ))}
 
           {property.type === "array" &&
-            property.items &&
-            property.items.map((item, index) => (
+            property.items?.map((item, index) => (
               <NestedPropertyEditor
                 key={item.id}
                 property={item}
@@ -234,7 +232,7 @@ const NestedPropertyEditor: React.FC<NestedPropertyEditorProps> = ({
               : null;
       onChange({ ...property, value: defaultValue });
     }
-  }, [property.type]);
+  }, [onChange, property]);
 
   return (
     <div className="overflow-hidden rounded border border-white/10 bg-white/5">

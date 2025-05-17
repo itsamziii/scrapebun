@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { MeshDistortMaterial, Trail } from "@react-three/drei";
-import * as THREE from "three";
+import type * as THREE from "three";
 
 interface FloatingSphereProps {
   position: [number, number, number];

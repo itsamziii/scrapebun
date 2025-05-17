@@ -1,13 +1,7 @@
 "use client";
-import Link from "next/link";
 import { Button } from "~/components/ui/button";
 
-import { motion } from "framer-motion";
-
 const HeroSection = () => {
-  const scrollToFeatures = () => {
-    document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
-  };
   return (
     <section className="flex min-h-screen items-center justify-center pt-20 pb-32">
       <div className="container mx-auto px-4 text-center">

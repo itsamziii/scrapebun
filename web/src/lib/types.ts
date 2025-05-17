@@ -32,7 +32,7 @@ export interface Property {
   id: string;
   name: string;
   type: PropertyType;
-  value: string | number | boolean | null | Record<string, any> | any[];
+  value: string | number | boolean | null | Record<string, unknown> | unknown[];
   parentId?: string;
   properties?: Property[];
   items?: Property[];

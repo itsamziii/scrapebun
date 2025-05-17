@@ -1,6 +1,4 @@
-import type { TaskType } from "~/lib/types";
 import { supabase } from "../supabase";
-import { useAuth } from "@clerk/nextjs";
 
 export const updateTask = async (
   userId: string,

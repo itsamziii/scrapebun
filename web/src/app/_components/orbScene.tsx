@@ -8,7 +8,7 @@ interface OrbSceneProps {
 
 const OrbScene: React.FC<OrbSceneProps> = ({ className }) => {
   return (
-    <div className={`${className || ""} h-full w-full`}>
+    <div className={`${className ?? ""} h-full w-full`}>
       <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} intensity={1} />

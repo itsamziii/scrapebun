@@ -17,7 +17,9 @@ export const ScrapeHistoryCard = ({
 }: ScrapeHistoryCardProps) => {
   if (scrapeHistory.length === 0) {
     return (
-      <p className="text-white/70">You haven't generated any results yet.</p>
+      <p className="text-white/70">
+        You haven&apos;t generated any results yet.
+      </p>
     );
   }
 

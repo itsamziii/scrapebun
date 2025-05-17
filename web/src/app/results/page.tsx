@@ -50,7 +50,7 @@ const Results = () => {
 
   const handleCopy = useCallback(
     (text: string) => {
-      navigator.clipboard.writeText(text);
+      void navigator.clipboard.writeText(text);
       setCopied(true);
       toast({
         title: "Copied to clipboard",
@@ -110,7 +110,7 @@ const Results = () => {
           <div className="mb-8">
             <h1 className="mb-2 text-3xl font-bold text-white">Results</h1>
             <p className="text-white/70">
-              Here's what our AI agent found for you.
+              Here&apos;s what our AI agent found for you.
             </p>
           </div>
 
@@ -123,7 +123,7 @@ const Results = () => {
                   size="sm"
                   className="text-white/70 hover:bg-white/10 hover:text-white"
                   onClick={() =>
-                    handleCopy(JSON.stringify(mockResult, null, 2))
+                    void handleCopy(JSON.stringify(mockResult, null, 2))
                   }
                 >
                   {copied ? (

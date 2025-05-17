@@ -1,18 +1,16 @@
 import { useState, useCallback, useEffect } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { createTask } from "~/lib/queries/createTask";
 import { updateTask } from "~/lib/queries/updateTask";
 import { getAllTasks } from "~/lib/queries/getTasks";
-import { urlSchema, taskSchema } from "../lib/validators";
-import type { TaskHistory, TaskType, TaskStatus } from "../lib/types";
+import { taskSchema } from "../lib/validators";
+import type { TaskHistory, TaskStatus } from "../lib/types";
 
 export const useTask = () => {
   const { user } = useUser();
   const { getToken } = useAuth();
   const [userId, setUserId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
   const [scrapeStatus, setScrapeStatus] = useState<TaskStatus>("idle");
   const [scrapeHistory, setScrapeHistory] = useState<TaskHistory[]>([]);
   const [loading, setLoading] = useState(false);
@@ -27,7 +25,7 @@ export const useTask = () => {
       setToken(token);
     };
 
-    fetchToken();
+    void fetchToken();
   }, [user, getToken]);
 
   const validateUrls = (urls: string[]) => {
@@ -35,6 +33,7 @@ export const useTask = () => {
       taskSchema.shape.urls.parse(urls);
       return true;
     } catch (error) {
+      console.error("Error validating URLs:", error);
       toast.error("Please enter valid URLs");
       return false;
     }
@@ -75,43 +74,12 @@ export const useTask = () => {
   );
 
   useEffect(() => {
-    fetchTaskHistory();
+    void fetchTaskHistory();
   }, [fetchTaskHistory]);
-
-  const handleTaskSelect = useCallback(
-    async (type: TaskType) => {
-      if (userId && token && type) {
-        try {
-          const newTask = await createTask(userId, token, type);
-
-          if (newTask) {
-            setCurrentTaskId(newTask.id);
-            setScrapeStatus("running");
-
-            const taskHistory: TaskHistory = {
-              id: newTask.id,
-              type: type,
-              user_id: userId,
-              created: new Date().toISOString(),
-              status: "running",
-              data: null,
-            };
-
-            setScrapeHistory((prev) => [taskHistory, ...prev]);
-          }
-        } catch (error) {
-          console.error("Error handling task selection:", error);
-          toast.error("Failed to initialize task");
-        }
-      }
-    },
-    [userId, token],
-  );
 
   return {
     userId,
     token,
-    currentTaskId,
     scrapeStatus,
     scrapeHistory,
     loading,
@@ -119,6 +87,5 @@ export const useTask = () => {
     setScrapeStatus,
     validateUrls,
     updateTaskStatus,
-    handleTaskSelect,
   };
 };

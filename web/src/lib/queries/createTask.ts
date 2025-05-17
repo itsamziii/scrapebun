@@ -1,6 +1,5 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
 import { supabase } from "../supabase";
 import type { TaskType } from "~/lib/types";
 
@@ -8,7 +7,7 @@ export const createTask = async (
   userId: string,
   token: string,
   taskType: TaskType,
-) => {
+): Promise<string> => {
   const client = await supabase(token);
 
   const { data, error } = await client
@@ -24,5 +23,5 @@ export const createTask = async (
     throw new Error(error.message);
   }
 
-  return data;
+  return data.id;
 };

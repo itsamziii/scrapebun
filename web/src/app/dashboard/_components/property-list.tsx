@@ -38,13 +38,13 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
   }, [property.type]);
 
   const handleTypeChange = (newType: PropertyType) => {
-    let updatedProperty = { ...property, type: newType };
+    const updatedProperty = { ...property, type: newType };
 
     if (newType === "object") {
-      updatedProperty.properties = updatedProperty.properties || [];
+      updatedProperty.properties = updatedProperty.properties ?? [];
       delete updatedProperty.items;
     } else if (newType === "array") {
-      updatedProperty.items = updatedProperty.items || [];
+      updatedProperty.items = updatedProperty.items ?? [];
       delete updatedProperty.properties;
     } else {
       delete updatedProperty.properties;
@@ -66,7 +66,7 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
 
   const addNestedProperty = () => {
     if (property.type === "object") {
-      const newProperties = [...(property.properties || [])];
+      const newProperties = [...(property.properties ?? [])];
       newProperties.push({
         id: uuidv4(),
         name: `property${newProperties.length + 1}`,
@@ -76,7 +76,7 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
       });
       onChange({ ...property, properties: newProperties });
     } else if (property.type === "array") {
-      const newItems = [...(property.items || [])];
+      const newItems = [...(property.items ?? [])];
       newItems.push({
         id: uuidv4(),
         name: String(newItems.length),
@@ -260,7 +260,7 @@ export const PropertyList: React.FC<PropertyListProps> = ({
     const hasChildren =
       (prop.type === "object" &&
         prop.properties &&
-        prop.properties.length > 0) ||
+        prop.properties.length > 0) ??
       (prop.type === "array" && prop.items && prop.items.length > 0);
 
     return (
@@ -315,8 +315,8 @@ export const PropertyList: React.FC<PropertyListProps> = ({
               prop.type !== "array" &&
               prop.type !== "null" && (
                 <span className="ml-2 max-w-[150px] truncate text-xs text-white/50">
-                  {prop.type === "string" && `"${prop.value}"`}
-                  {prop.type === "number" && 1}
+                  {prop.type === "string" && `"${prop.value as string}"`}
+                  {prop.type === "number" && (prop.value as number)}
                   {prop.type === "boolean" && (prop.value ? "true" : "false")}
                 </span>
               )}
@@ -351,13 +351,11 @@ export const PropertyList: React.FC<PropertyListProps> = ({
         {isExpanded && hasChildren && (
           <>
             {prop.type === "object" &&
-              prop.properties &&
-              prop.properties.map((nestedProp, nestedIndex) =>
+              prop.properties?.map((nestedProp, nestedIndex) =>
                 renderPropertyItem(nestedProp, nestedIndex, depth + 1),
               )}
             {prop.type === "array" &&
-              prop.items &&
-              prop.items.map((item, itemIndex) =>
+              prop.items?.map((item, itemIndex) =>
                 renderPropertyItem(item, itemIndex, depth + 1),
               )}
           </>

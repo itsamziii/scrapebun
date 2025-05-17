@@ -1,4 +1,4 @@
-import { CodeXml, ArrowRight, Sparkles, BarChart3 } from "lucide-react";
+import { CodeXml, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import Link from "next/link";
 
