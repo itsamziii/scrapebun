@@ -13,7 +13,7 @@ from crawl4ai import (
     LLMConfig,
 )
 
-from utils import json_to_csv
+from .utils import json_to_csv
 
 crawl_router = APIRouter(prefix="/crawl", tags=["crawl"])
 

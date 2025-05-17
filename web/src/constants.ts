@@ -15,7 +15,7 @@ export const taskCards = [
   },
   {
     icon: TaskIcons.multiple,
-    title: "Web Scraper Multiple Pages",
+    title: "Domain Wide Scraper",
     description: "Scrape multiple pages of a website automatically.",
     features: [
       "Scrape tables, lists, and text",

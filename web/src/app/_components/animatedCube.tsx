@@ -1,8 +1,7 @@
-
-import React, { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { Edges } from '@react-three/drei';
-import * as THREE from 'three';
+import React, { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import { Edges } from "@react-three/drei";
+import * as THREE from "three";
 
 interface AnimatedCubeProps {
   position?: [number, number, number];
@@ -15,9 +14,9 @@ interface AnimatedCubeProps {
 const AnimatedCube: React.FC<AnimatedCubeProps> = ({
   position = [0, 0, 0],
   size = 1,
-  color = '#3b82f6',
+  color = "#3b82f6",
   wireframe = false,
-  rotationSpeed = 0.01
+  rotationSpeed = 0.01,
 }) => {
   const mesh = useRef<THREE.Mesh>(null);
 
@@ -31,7 +30,7 @@ const AnimatedCube: React.FC<AnimatedCubeProps> = ({
   return (
     <mesh position={position} ref={mesh}>
       <boxGeometry args={[size, size, size]} />
-      <meshStandardMaterial 
+      <meshStandardMaterial
         wireframe={wireframe}
         roughness={0.5}
         metalness={0.8}

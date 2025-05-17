@@ -37,10 +37,7 @@ export default function RootLayout({
             <body
               className={`${geist.variable} overflow-x-hidden scroll-smooth`}
             >
-              <ThemeProvider
-                attribute="class"
-                forcedTheme="dark"
-              >
+              <ThemeProvider attribute="class" forcedTheme="dark">
                 <Navbar />
                 {children}
               </ThemeProvider>

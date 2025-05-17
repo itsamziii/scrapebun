@@ -7,13 +7,19 @@ interface ObjectPreviewProps {
 }
 
 export const ObjectPreview: React.FC<ObjectPreviewProps> = ({ object }) => {
-  const formattedJson = useMemo(() => JSON.stringify(object, null, 2), [object]);
+  const formattedJson = useMemo(
+    () => JSON.stringify(object, null, 2),
+    [object],
+  );
 
-  const highlightedJson = useMemo(() => syntaxHighlight(formattedJson), [formattedJson]);
+  const highlightedJson = useMemo(
+    () => syntaxHighlight(formattedJson),
+    [formattedJson],
+  );
 
   return (
-    <div className="rounded-lg border border-white/10 bg-white/5 p-4 overflow-auto max-h-[500px]">
-      <pre className="text-sm font-mono whitespace-pre text-white/70">
+    <div className="max-h-[500px] overflow-auto rounded-lg border border-white/10 bg-white/5 p-4">
+      <pre className="font-mono text-sm whitespace-pre text-white/70">
         <code dangerouslySetInnerHTML={{ __html: highlightedJson }} />
       </pre>
     </div>
@@ -21,7 +27,10 @@ export const ObjectPreview: React.FC<ObjectPreviewProps> = ({ object }) => {
 };
 
 function syntaxHighlight(json: string) {
-  json = json.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  json = json
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
   return json.replace(
     /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
     (match) => {
@@ -40,6 +49,6 @@ function syntaxHighlight(json: string) {
         cls = "text-blue-300"; // numbers
       }
       return `<span class="${cls}">${match}</span>`;
-    }
+    },
   );
 }

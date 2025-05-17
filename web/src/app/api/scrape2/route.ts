@@ -5,11 +5,10 @@ function sleep(ms: number) {
 }
 
 export async function POST(req: Request) {
-  const { urls, type, fields, instruction, outputFormat } = await req.json();
+  const { url, type, instruction, outputFormat } = await req.json();
 
-  console.log("urls: ", urls);
+  console.log("urls: ", url);
   console.log("type: ", type);
-  console.log("fields: ", fields);
   console.log("instruction: ", instruction);
   console.log("outputFormat: ", outputFormat);
 

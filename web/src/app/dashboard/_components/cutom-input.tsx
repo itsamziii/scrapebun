@@ -17,18 +17,17 @@ import {
 } from "~/components/ui/select";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Loader, Sparkles, Plus, X } from "lucide-react";
-import type { MultipleOutputFormat, ScrapeType } from "../../../lib/types";
+import { Loader, Sparkles } from "lucide-react";
+import type { MultipleOutputFormat } from "../../../lib/types";
 import type { TaskType } from "../../../lib/types";
-import type { ChangeEvent } from "react";
 import type { SingleOutputFormat } from "../../../lib/types";
 import { DataObjectBuilder } from "./data-object-builder";
 
 interface CustomInputCardProps {
   taskType: TaskType;
   scrapeUrl: string;
-  scrapeUrls: string[];
-  scrapeType: ScrapeType;
+  instruction: string;
+  setInstruction: (instruction: string) => void;
   singleOutputFormat: SingleOutputFormat;
   multipleOutputFormat: MultipleOutputFormat;
   setTaskType: (type: TaskType) => void;
@@ -36,9 +35,6 @@ interface CustomInputCardProps {
   setExtractFields: (fields: Record<string, any>) => void;
   setSingleOutputFormat: (format: SingleOutputFormat) => void;
   setMultipleOutputFormat: (format: MultipleOutputFormat) => void;
-  handleUrlChange: (index: number, url: string) => void;
-  handleAddUrl: () => void;
-  handleRemoveUrl: (index: number) => void;
   handleRunTask: () => void;
   loading: boolean;
 }
@@ -46,17 +42,14 @@ interface CustomInputCardProps {
 export const CustomInputCard: React.FC<CustomInputCardProps> = ({
   taskType,
   scrapeUrl,
-  scrapeUrls,
-  scrapeType,
+  instruction,
+  setInstruction,
   singleOutputFormat,
   multipleOutputFormat,
   setTaskType,
   setScrapeUrl,
   setExtractFields,
   setMultipleOutputFormat,
-  handleUrlChange,
-  handleAddUrl,
-  handleRemoveUrl,
   setSingleOutputFormat,
   handleRunTask,
   loading,
@@ -80,13 +73,6 @@ export const CustomInputCard: React.FC<CustomInputCardProps> = ({
       setMultipleOutputFormat(value as MultipleOutputFormat);
     },
     [setMultipleOutputFormat],
-  );
-
-  const handleUrlInputChange = useCallback(
-    (index: number, e: ChangeEvent<HTMLInputElement>) => {
-      handleUrlChange(index, e.target.value);
-    },
-    [handleUrlChange],
   );
 
   const handleExtractFieldsChange = useCallback(
@@ -118,7 +104,7 @@ export const CustomInputCard: React.FC<CustomInputCardProps> = ({
             </SelectTrigger>
             <SelectContent className="border-white/10 bg-black">
               <SelectItem value="single">Single Page Scrape</SelectItem>
-              <SelectItem value="multiple">Multiple Pages Scrape</SelectItem>
+              <SelectItem value="multiple">Domain Wide Scrape</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -135,6 +121,17 @@ export const CustomInputCard: React.FC<CustomInputCardProps> = ({
                 placeholder="https://example.com"
                 className="border-white/10 bg-white/5 text-white"
                 required
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm text-white/70">
+                Instruction
+              </label>
+              <Input
+                value={instruction}
+                onChange={(e) => setInstruction(e.target.value)}
+                placeholder="Enter task-specific instructions"
+                className="border-white/10 bg-white/5 text-white"
               />
             </div>
             <div>
@@ -163,36 +160,26 @@ export const CustomInputCard: React.FC<CustomInputCardProps> = ({
           <div className="space-y-6">
             <div>
               <label className="mb-1 block text-sm text-white/70">
-                Website URLs
+                Website URL
               </label>
-              {scrapeUrls.map((url, index) => (
-                <div key={index} className="flex gap-2">
-                  <Input
-                    value={url}
-                    onChange={(e) => handleUrlInputChange(index, e)}
-                    placeholder="https://example.com"
-                    className="border-white/10 bg-white/5 text-white"
-                    required
-                  />
-                  {scrapeUrls.length > 1 && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRemoveUrl(index)}
-                      className="text-white/70 hover:text-white"
-                    >
-                      <X size={16} />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button
-                variant="outline"
-                onClick={handleAddUrl}
-                className="border-white/10 bg-white/5 text-white hover:bg-white/20"
-              >
-                <Plus size={16} className="mr-2" /> Add URL
-              </Button>
+              <Input
+                value={scrapeUrl}
+                onChange={(e) => setScrapeUrl(e.target.value)}
+                placeholder="https://example.com"
+                className="border-white/10 bg-white/5 text-white"
+                required
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm text-white/70">
+                Instruction
+              </label>
+              <Input
+                value={instruction}
+                onChange={(e) => setInstruction(e.target.value)}
+                placeholder="Enter task-specific instructions"
+                className="border-white/10 bg-white/5 text-white"
+              />
             </div>
             <div>
               <label className="mb-1 block text-sm text-white/70">
@@ -211,7 +198,6 @@ export const CustomInputCard: React.FC<CustomInputCardProps> = ({
                 </SelectContent>
               </Select>
             </div>
-            <DataObjectBuilder onObjectChange={handleExtractFieldsChange} />
           </div>
         )}
       </CardContent>

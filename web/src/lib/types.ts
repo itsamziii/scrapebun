@@ -1,4 +1,4 @@
-export type TaskType = "single" | "multiple" | null;
+export type TaskType = "single" | "multiple";
 export type ScrapeType = "Single" | "Multiple" | null;
 export type SingleOutputFormat = "JSON" | "CSV" | "Google Sheets" | null;
 export type MultipleOutputFormat = "Vector DB" | "PostgreSQL" | null;
