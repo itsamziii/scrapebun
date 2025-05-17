@@ -5,14 +5,15 @@ import { Button } from "~/components/ui/button";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { useSession } from "@clerk/nextjs";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { createClerkSupabaseClient } from "~/lib/supabase/client";
 import { CodeBlock } from "./_components/code-block";
+import { Copy } from "lucide-react";
 
 export default async function ResultsPage() {
   const { taskId } = useParams();
-
   const { session } = useSession();
+  const [isCopied, setIsCopied] = useState(false);
 
   const supabaseClient = useMemo(() => {
     if (!session) return null;
@@ -40,6 +41,12 @@ export default async function ResultsPage() {
     data.task_scrape_type === "single"
       ? data.single_result.data_json
       : data.single_result.data_csv;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(taskId as string);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   return (
     <div className="container mx-auto py-8">
@@ -98,8 +105,22 @@ export default async function ResultsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="text-white/70">
-          Multiple scrape results view coming soon...
+        <div className="mt-6 text-white/70">
+          <p>To view the data, visit the MCP server and use the Task ID:</p>
+          <div className="flex items-center space-x-2">
+            <span className="rounded bg-gray-800 p-2 font-mono text-white">
+              {taskId}
+            </span>
+            <Button variant="outline" onClick={handleCopy}>
+              {isCopied ? (
+                "Copied"
+              ) : (
+                <>
+                  <Copy className="mr-2" size={16} /> Copy Task ID
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       )}
     </div>
