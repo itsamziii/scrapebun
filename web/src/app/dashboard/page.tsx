@@ -22,6 +22,8 @@ import TaskCard from "./_components/task-card";
 import { useRouter } from "next/navigation";
 import { createTask } from "~/lib/services/task";
 
+
+
 const Dashboard = () => {
   const router = useRouter();
 
@@ -159,35 +161,7 @@ const Dashboard = () => {
          * > MULTIPLE SCRAPING TASK
          * AB YAHA API CALL KAR
          */
-        const sitemapRes = await fetch(
-          `/api/domain/sitemap?url=${encodeURIComponent(scrapeUrl)}`,
-          {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-          },
-        );
-        if (!sitemapRes.ok) {
-          throw new Error(
-            `Failed to fetch sitemap: ${sitemapRes.status} ${sitemapRes.statusText}`,
-          );
-        }
-
-        const sitemapData = (await sitemapRes.json()) as { urls: string[] };
-        const urls = sitemapData.urls;
-        if (!Array.isArray(urls) || urls.length === 0) {
-          throw new Error("No URLs found");
-        }
-
-        const payload = {
-          urls,
-          type: taskType,
-        };
-
-        res = await fetch("api/domain", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
+        
         // res = await fetch("/api/scrape2", {
         //   method: "POST",
         //   headers: { "Content-Type": "application/json" },
@@ -199,14 +173,6 @@ const Dashboard = () => {
         //   }),
         // });
       }
-
-      if (!res.ok) {
-        console.log(await res.json());
-        throw new Error("Failed to scrape website");
-      }
-
-      const result = (await res.json()) as Record<string, unknown>;
-      console.log("result: ", result);
 
       /**
        * AB UPDATE TASK STATUS KARNA HAI
