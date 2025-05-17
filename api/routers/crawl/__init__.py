@@ -2,7 +2,7 @@ import os
 import json
 from typing import Dict, Any, List, Literal
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from crawl4ai import (
     Crawl4aiDockerClient,
     BrowserConfig,
@@ -13,7 +13,7 @@ from crawl4ai import (
     LLMConfig,
 )
 
-from .utils import json_to_csv
+from .utils import json_to_csv, process_domain_results, ProcessedChunk
 
 crawl_router = APIRouter(prefix="/crawl", tags=["crawl"])
 
@@ -107,7 +107,13 @@ class DomainCrawlerRequest(BaseModel):
     urls: List[str]
 
 
-@crawl_router.post("/domain")
+class DomainCrawlerResponse(BaseModel):
+    task_id: str
+    success: bool
+    output: List[List[ProcessedChunk]] = Field(default_factory=list)
+
+
+@crawl_router.post("/domain", response_model=DomainCrawlerResponse)
 async def crawl_domain(payload: DomainCrawlerRequest):
     req = payload.model_dump()
 
@@ -117,7 +123,7 @@ async def crawl_domain(payload: DomainCrawlerRequest):
         # For some reason, this is required to be called
         await client.authenticate("hello@example.com")
 
-        results: List[CrawlResult] = await client.crawl(
+        results: List[CrawlResult] | CrawlResult = await client.crawl(
             req["urls"],
             browser_config=browser_config,
             crawler_config=CrawlerRunConfig(
@@ -125,10 +131,17 @@ async def crawl_domain(payload: DomainCrawlerRequest):
                 remove_forms=True,
                 simulate_user=True,
                 check_robots_txt=True,
+                magic=True,
             ),
         )
 
-        for res in results:
-            res.fit_html = None
+        if type(results) == CrawlResult:
+            results = [results]
 
-        return {"success": "hello!"}
+        output: List[List[ProcessedChunk]] = await process_domain_results(results)
+
+        return DomainCrawlerResponse(
+            task_id=req["task_id"],
+            success=True,
+            output=output,
+        )

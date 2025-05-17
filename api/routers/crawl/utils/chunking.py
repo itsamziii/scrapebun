@@ -1,39 +1,54 @@
 import asyncio
 import urllib.parse
-from typing import List
+import logging
+from typing import List, Dict
 from openai import AsyncOpenAI
+from crawl4ai import CrawlResult
+from dataclasses import dataclass
 
+# Initialize OpenAI client and logging
 openai_client = AsyncOpenAI()
+logging.basicConfig(level=logging.INFO)
+
+EMBEDDING_DIMENSION = 1536
+
+
+@dataclass
+class ProcessedChunk:
+    embedding: List[float]
+    text: str
+    chunk_number: int
+    title: str
+    url: str
 
 
 def chunk_text(markdown: str, size: int = 5_000) -> List[str]:
+    """
+    Splits the input markdown into semantically meaningful chunks of approximately `size` characters.
+    """
     chunks = []
     start = 0
     text_length = len(markdown)
 
     while start < text_length:
         end = start + size
-
-        # If we're at the end of the text, just take what's left
         if end >= text_length:
             chunks.append(markdown[start:].strip())
             break
 
-        # Try to find a code block boundary first (```)
         chunk = markdown[start:end]
         code_block = chunk.rfind("```")
         if code_block != -1 and code_block > size * 0.3:
-            end = start + code_block  # If no code block, try to break at a paragraph
+            end = start + code_block
         elif "\n\n" in chunk:
             last_break = chunk.rfind("\n\n")
-            if last_break > size * 0.3:  # Only break if we're past 30% of size
-                end = (
-                    start + last_break
-                )  # If no paragraph break, try to break at a sentence
+            if last_break > size * 0.3:
+                end = start + last_break
         elif ". " in chunk:
             last_period = chunk.rfind(". ")
-            if last_period > size * 0.3:  # Only break if we're past 30% of size
-                end = start + last_period + 1  # Extract chunk and clean it up
+            if last_period > size * 0.3:
+                end = start + last_period + 1
+
         chunk = markdown[start:end].strip()
         if chunk:
             chunks.append(chunk)
@@ -43,36 +58,55 @@ def chunk_text(markdown: str, size: int = 5_000) -> List[str]:
     return chunks
 
 
-async def get_embeddings(text: str) -> List[float]:
-    try:
+async def get_embeddings(text: str, retries: int = 3) -> List[float]:
+    """
+    Calls OpenAI's embedding API and returns the embedding for the given text.
+    Retries on failure.
+    """
+    for attempt in range(1, retries + 1):
+        try:
+            response = await openai_client.embeddings.create(
+                model="text-embedding-3-small", input=text
+            )
+            return response.data[0].embedding
+        except Exception as e:
+            logging.warning(f"Attempt {attempt}: Error getting embedding - {e}")
+            await asyncio.sleep(2**attempt)
 
-        response = await openai_client.embeddings.create(
-            model="text-embedding-3-small", input=text
-        )
-
-        return response.data[0].embedding
-    except Exception as e:
-        print(f"Error getting embedding: {e}")
-        return [0] * 1536
+    logging.error(f"Failed to get embedding after {retries} attempts.")
+    return [0.0] * EMBEDDING_DIMENSION
 
 
-async def process_and_save_markdown(markdown: str, url: str):
+async def process_and_save_markdown(markdown: str, url: str) -> List[ProcessedChunk]:
+    """
+    Chunks the markdown, generates embeddings, and returns metadata for each chunk.
+    """
     chunks = chunk_text(markdown)
-
     real_url = urllib.parse.urlparse(url)
-    title = real_url.path.replace("/", "_")
+    title = real_url.path.strip("/").replace("/", "_") or real_url.netloc
 
-    tasks = [
-        {
-            "embedding": get_embeddings(chunk),
-            "text": chunk,
-            "chunk_number": idx,
-            "title": title,
-            "url": real_url.geturl(),
-        }
-        for idx, chunk in enumerate(chunks)
+    # Get embeddings concurrently
+    embeddings = await asyncio.gather(*(get_embeddings(chunk) for chunk in chunks))
+
+    processed_tasks = [
+        ProcessedChunk(
+            embedding=embedding,
+            text=chunk,
+            chunk_number=idx,
+            title=title,
+            url=real_url.geturl(),
+        )
+        for idx, (chunk, embedding) in enumerate(zip(chunks, embeddings))
     ]
 
-    processed_tasks = await asyncio.gather(*tasks)
-
     return processed_tasks
+
+
+async def process_domain_results(results: List[CrawlResult]) -> List[List[ProcessedChunk]]:
+    """
+    Processes a list of CrawlResult objects concurrently and returns structured data.
+    """
+    tasks = [
+        process_and_save_markdown(res.markdown.raw_markdown, res.url) for res in results
+    ]
+    return await asyncio.gather(*tasks)
