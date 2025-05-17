@@ -1,3 +1,4 @@
+import Link from "next/link";
 import React from "react";
 import {
   Card,
@@ -6,6 +7,7 @@ import {
   CardDescription,
   CardContent,
 } from "~/components/ui/card";
+import { Button } from "~/components/ui/button";
 import type { Tables } from "~/database.types";
 
 interface ScrapeHistoryCardProps {
@@ -58,6 +60,11 @@ export const ScrapeHistoryCard = ({
               >
                 Status: {task.status}
               </p>
+              <Link href="/result">
+                <Button className="bg-ai-primary hover:bg-ai-secondary w-full text-white">
+                  View Results
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
