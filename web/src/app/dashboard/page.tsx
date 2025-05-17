@@ -17,9 +17,11 @@ import type {
   TaskType,
   SingleOutputFormat,
   MultipleOutputFormat,
+  TaskStatus,
 } from "../../lib/types";
 import TaskCard from "./_components/task-card";
 import { createTask } from "~/lib/queries/createTask";
+import { log } from "node:console";
 
 const Dashboard = () => {
   const { getToken } = useAuth();
@@ -27,6 +29,8 @@ const Dashboard = () => {
     userId,
     scrapeHistory,
     loading,
+    scrapeStatus,
+    setScrapeHistory,
     setLoading,
     setScrapeStatus,
     updateTaskStatus,
@@ -43,6 +47,18 @@ const Dashboard = () => {
   const [extractFields, setExtractFields] = useState<Record<string, unknown>>(
     {},
   );
+
+  const updateScrapeHistory = (
+    taskId: string,
+    status: TaskStatus,
+    data: string | null = null,
+  ) => {
+    setScrapeHistory((prevHistory) =>
+      prevHistory.map((task) =>
+        task.id === taskId ? { ...task, status, data } : task,
+      ),
+    );
+  };
 
   const handleRunTask = async () => {
     const token = await getToken();
@@ -90,8 +106,23 @@ const Dashboard = () => {
        * USKE BAAD USER KO HISTORY PAR REREDIRECT KARNA HAI
        */
 
-      taskId = await createTask(userId, token, taskType)
+      taskId = await createTask(userId, token, taskType);
+      if (!taskId) {
+        throw new Error("Failed to create task");
+      }
 
+      setScrapeHistory((prevHistory) => [
+        ...prevHistory,
+        {
+          id: taskId,
+          type: taskType,
+          user_id: userId,
+          created: new Date().toISOString(),
+          status: "running",
+          data: null,
+        },
+      ]);
+      setActiveTab("history");
       let res;
 
       if (taskType === "single") {
@@ -99,18 +130,84 @@ const Dashboard = () => {
          * > SINGLE SCRAPING TASK
          * AB YAHA API CALL KAR
          */
-        res = await fetch("/hello");
+
+        const payload = {
+          task_id: taskId,
+          url: scrapeUrl,
+          instruction: instruction,
+          data_schema: extractFields,
+          output_type: outputFormat.toLowerCase(),
+        };
+        res = await fetch("http://localhost:9999/api/crawl/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        // res = await fetch("/api/scrape", {
+        //   method: "POST",
+        //   headers: { "Content-Type": "application/json" },
+        //   body: JSON.stringify({
+        //     urls: scrapeUrl,
+        //     type: taskType,
+        //     instruction,
+        //     fields: extractFields,
+        //     outputFormat,
+        //   }),
+        // });
       } else {
         /**
          * > MULTIPLE SCRAPING TASK
          * AB YAHA API CALL KAR
          */
-        res = await fetch("/hello");
+        const sitemapRes = await fetch(
+          `/api/domain/sitemap?url=${encodeURIComponent(scrapeUrl)}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+        if (!sitemapRes.ok) {
+          throw new Error(
+            `Failed to fetch sitemap: ${sitemapRes.status} ${sitemapRes.statusText}`,
+          );
+        }
+
+        const sitemapData = await sitemapRes.json();
+        const urls = sitemapData.urls;
+        if (!Array.isArray(urls) || urls.length === 0) {
+          throw new Error("No URLs found");
+        }
+
+        const payload = {
+          urls,
+          type: taskType,
+        };
+
+        res = await fetch("api/domain", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        // res = await fetch("/api/scrape2", {
+        //   method: "POST",
+        //   headers: { "Content-Type": "application/json" },
+        //   body: JSON.stringify({
+        //     url: scrapeUrl,
+        //     type: taskType,
+        //     instruction,
+        //     outputFormat,
+        //   }),
+        // });
       }
 
       if (!res.ok) throw new Error("Failed to scrape website");
 
       const result = (await res.json()) as Record<string, unknown>;
+      console.log("result: ", result);
 
       setScrapeStatus("success");
 
@@ -119,6 +216,7 @@ const Dashboard = () => {
        */
 
       await updateTaskStatus(taskId, "success", JSON.stringify(result));
+      updateScrapeHistory(taskId, "success", JSON.stringify(result));
     } catch (error) {
       console.error("Error running scrape task:", error);
       setScrapeStatus("error");

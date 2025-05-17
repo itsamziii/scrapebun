@@ -83,6 +83,7 @@ export const useTask = () => {
     scrapeStatus,
     scrapeHistory,
     loading,
+    setScrapeHistory,
     setLoading,
     setScrapeStatus,
     validateUrls,
