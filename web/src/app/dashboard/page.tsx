@@ -90,7 +90,7 @@ const Dashboard = () => {
     }
 
     setLoading(true);
-    setActiveTab("history");
+    // setActiveTab("history");
 
     let taskId = "";
 
@@ -127,11 +127,6 @@ const Dashboard = () => {
       let res;
 
       if (taskType === "single") {
-        /**
-         * > SINGLE SCRAPING TASK
-         * AB YAHA API CALL KAR
-         */
-
         const payload = {
           task_id: taskId,
           url: scrapeUrl,

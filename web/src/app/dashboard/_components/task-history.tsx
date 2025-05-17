@@ -38,7 +38,7 @@ export const ScrapeHistoryCard = ({
         >
           <CardHeader>
             <CardTitle className="text-white">
-              {task.scrape_type === "single" ? "Single Page" : "Multiple Pages"}
+              {task.scrape_type === "single" ? "Single Page " : "Domain Wide "}
               Scrape
             </CardTitle>
             <CardDescription className="text-white/70">

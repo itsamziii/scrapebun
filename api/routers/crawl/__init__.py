@@ -35,7 +35,7 @@ class CrawlRequest(BaseModel):
 class CrawlResponse(BaseModel):
     message: str
     task_id: str
-    response: Dict[str, Any] | None = None
+    response: List[Dict[str, Any]] | None = None
 
 
 @crawl_router.post("/", response_model=CrawlResponse)
@@ -43,7 +43,10 @@ async def crawl(payload: CrawlRequest) -> CrawlResponse:
     req = payload.model_dump()
 
     async with Crawl4aiDockerClient(
-        base_url="http://localhost:11235", verbose=True, timeout=600
+        base_url="http://crawl4ai:11235",
+        verbose=True,
+        timeout=600,
+        verify_ssl=False,
     ) as client:
         # For some reason, this is required to be called
         await client.authenticate("hello@example.com")
@@ -62,7 +65,7 @@ async def crawl(payload: CrawlRequest) -> CrawlResponse:
                     llm_config=LLMConfig(
                         api_token=os.getenv("OPENAI_API_KEY"),
                     ),
-                    schema=req["schema"],
+                    schema=req["data_schema"],
                     instruction=req["instruction"],
                 ),
                 scan_full_page=True,
@@ -118,7 +121,7 @@ async def crawl_domain(payload: DomainCrawlerRequest):
     req = payload.model_dump()
 
     async with Crawl4aiDockerClient(
-        base_url="http://localhost:11235", verbose=True, timeout=600
+        base_url="http://crawl4ai:11235", verbose=True, timeout=600
     ) as client:
         # For some reason, this is required to be called
         await client.authenticate("hello@example.com")
