@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { useSession } from "@clerk/nextjs";
 import { useMemo } from "react";
 import { createClerkSupabaseClient } from "~/lib/supabase/client";
-import { getTask } from "~/lib/services/task";
+import { CodeBlock } from "./_components/code-block";
 
 export default async function ResultsPage() {
   const { taskId } = useParams();
@@ -23,12 +23,23 @@ export default async function ResultsPage() {
     throw new Error("Supabase client is not initialized");
   }
 
-  const taskInfo = await getTask(supabaseClient, taskId as string);
-  if (!taskInfo) {
+  const { data, error } = await supabaseClient
+    .rpc("get_task_data", {
+      task_uuid: taskId as string,
+    })
+    .single();
+
+  if (error) {
     return notFound();
   }
 
-  console.log(taskId);
+  const language = data.task_scrape_type === "single" ? "json" : "csv";
+  const filename =
+    data.task_scrape_type === "single" ? "data.json" : "data.csv";
+  const code =
+    data.task_scrape_type === "single"
+      ? data.single_result.data_json
+      : data.single_result.data_csv;
 
   return (
     <div className="container mx-auto py-8">
@@ -49,53 +60,47 @@ export default async function ResultsPage() {
           <div className="space-y-4">
             <div>
               <p className="text-sm text-white/70">Task ID</p>
-              <p className="text-white">{results.task_id}</p>
+              <p className="text-white">{data.task_id}</p>
             </div>
             <div>
               <p className="text-sm text-white/70">Status</p>
-              <p className="text-white">{results.message}</p>
+              <p className="text-white">{data.task_status}</p>
             </div>
             <div>
               <p className="text-sm text-white/70">Scrape Type</p>
               <p className="text-white capitalize">
-                {results.scrape_type || "unknown"}
+                {data.task_scrape_type || "unknown"}
               </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {results.response && (
+      {data.task_scrape_type === "single" ? (
         <Card className="mt-6 border-white/10">
           <CardHeader>
             <CardTitle className="text-white">Response Data</CardTitle>
           </CardHeader>
           <CardContent>
-            {results.scrape_type === "single" ? (
-              <Tabs defaultValue="json" className="w-full">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="json">JSON</TabsTrigger>
-                  <TabsTrigger value="csv">CSV</TabsTrigger>
-                </TabsList>
-                <TabsContent value="json">
-                  <pre className="overflow-auto rounded-lg bg-black/20 p-4 text-sm text-white">
-                    {JSON.stringify(results.response)}
-                  </pre>
-                </TabsContent>
-                <TabsContent value="csv">
-                  <pre className="overflow-auto rounded-lg bg-black/20 p-4 text-sm text-white">
-                    {convertToCSV(results.response)}
-                  </pre>
-                </TabsContent>
-              </Tabs>
-            ) : (
-              // multiple
-              <div className="text-white/70">
-                Multiple scrape results view coming soon...
-              </div>
-            )}
+            <Tabs defaultValue="json" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="json">JSON</TabsTrigger>
+                <TabsTrigger value="csv">CSV</TabsTrigger>
+              </TabsList>
+              <TabsContent value={language}>
+                <CodeBlock
+                  language={language}
+                  filename={filename}
+                  code={JSON.stringify(code)}
+                />
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
+      ) : (
+        <div className="text-white/70">
+          Multiple scrape results view coming soon...
+        </div>
       )}
     </div>
   );

@@ -149,7 +149,6 @@ export type Database = {
           task_status: string;
           task_created: string;
           single_result: Database["public"]["CompositeTypes"]["single_result_type"];
-          multiple_results: Database["public"]["CompositeTypes"]["multiple_result_type"][];
         }[];
       };
       requesting_user_id: {
