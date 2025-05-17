@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { useAuth } from "@clerk/nextjs";
 import { CustomInputCard } from "./_components/cutom-input";
 import { ScrapeHistoryCard } from "./_components/task-history";
 import { taskCards } from "../../constants";
@@ -20,19 +19,19 @@ import type {
   TaskStatus,
 } from "../../lib/types";
 import TaskCard from "./_components/task-card";
-import { createTask } from "~/lib/queries/createTask";
-import { log } from "node:console";
+import { useRouter } from "next/navigation";
+import { createTask } from "~/lib/services/task";
 
 const Dashboard = () => {
-  const { getToken } = useAuth();
+  const router = useRouter();
+
   const {
     userId,
     scrapeHistory,
     loading,
-    scrapeStatus,
+    supabaseClient,
     setScrapeHistory,
     setLoading,
-    setScrapeStatus,
     updateTaskStatus,
   } = useTask();
 
@@ -61,11 +60,12 @@ const Dashboard = () => {
   };
 
   const handleRunTask = async () => {
-    const token = await getToken();
-    if (!token) {
+    if (!supabaseClient) {
       toast.error("Please login to continue");
+      router.push("/sign-in");
       return;
     }
+
     if (!taskType) {
       toast.error("Please select a task type");
       return;
@@ -92,21 +92,21 @@ const Dashboard = () => {
     setLoading(true);
     setActiveTab("history");
 
-    setScrapeStatus("running");
-
     let taskId = "";
 
     try {
-      if (!userId || !token) {
-        throw new Error("User ID or token not found");
-      }
-
       /**
        * PEHLE CREATE TASK RUN KAR IDHAR USSE TASK ID LE
        * USKE BAAD USER KO HISTORY PAR REREDIRECT KARNA HAI
        */
 
-      taskId = await createTask(userId, token, taskType);
+      taskId = (
+        await createTask(supabaseClient, {
+          scrape_type: taskType,
+          status: "running",
+        })
+      ).id;
+
       if (!taskId) {
         throw new Error("Failed to create task");
       }
@@ -115,14 +115,15 @@ const Dashboard = () => {
         ...prevHistory,
         {
           id: taskId,
-          type: taskType,
-          user_id: userId,
+          user_id: userId!,
+          scrape_type: taskType,
           created: new Date().toISOString(),
           status: "running",
-          data: null,
         },
       ]);
+
       setActiveTab("history");
+
       let res;
 
       if (taskType === "single") {
@@ -142,7 +143,6 @@ const Dashboard = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         });
@@ -176,7 +176,7 @@ const Dashboard = () => {
           );
         }
 
-        const sitemapData = await sitemapRes.json();
+        const sitemapData = (await sitemapRes.json()) as { urls: string[] };
         const urls = sitemapData.urls;
         if (!Array.isArray(urls) || urls.length === 0) {
           throw new Error("No URLs found");
@@ -209,8 +209,6 @@ const Dashboard = () => {
       const result = (await res.json()) as Record<string, unknown>;
       console.log("result: ", result);
 
-      setScrapeStatus("success");
-
       /**
        * AB UPDATE TASK STATUS KARNA HAI
        */
@@ -219,7 +217,6 @@ const Dashboard = () => {
       updateScrapeHistory(taskId, "success", JSON.stringify(result));
     } catch (error) {
       console.error("Error running scrape task:", error);
-      setScrapeStatus("error");
 
       if (taskId)
         await updateTaskStatus(

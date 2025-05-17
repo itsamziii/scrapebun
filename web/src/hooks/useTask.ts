@@ -1,34 +1,24 @@
-import { useState, useCallback, useEffect } from "react";
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useState, useCallback, useEffect, useMemo } from "react";
+import { useSession } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { updateTask } from "~/lib/queries/updateTask";
-import { getAllTasks } from "~/lib/queries/getTasks";
-import { taskSchema } from "../lib/validators";
-import type { TaskHistory, TaskStatus } from "../lib/types";
+import { updateTask, getTasks } from "~/lib/services/task";
+import { taskSchema } from "~/lib/validators";
+import type { TaskStatus } from "~/lib/types";
+import { createClerkSupabaseClient } from "~/lib/supabase/client";
+import type { Tables } from "~/database.types";
 
 export const useTask = () => {
-  const { user } = useUser();
-  const { getToken } = useAuth();
-  const [userId, setUserId] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [scrapeStatus, setScrapeStatus] = useState<TaskStatus>("idle");
-  const [scrapeHistory, setScrapeHistory] = useState<TaskHistory[]>([]);
+  const { session } = useSession();
+
+  const supabaseClient = useMemo(() => {
+    if (!session) return null;
+    return createClerkSupabaseClient(session);
+  }, [session]);
+
+  const [scrapeHistory, setScrapeHistory] = useState<Tables<"tasks">[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
-    setUserId(user.id);
-
-    const fetchToken = async () => {
-      const token = await getToken();
-      if (!token) return;
-      setToken(token);
-    };
-
-    void fetchToken();
-  }, [user, getToken]);
-
-  const validateUrls = (urls: string[]) => {
+  const validateUrls = useCallback((urls: string[]) => {
     try {
       taskSchema.shape.urls.parse(urls);
       return true;
@@ -37,27 +27,26 @@ export const useTask = () => {
       toast.error("Please enter valid URLs");
       return false;
     }
-  };
+  }, []);
 
   const fetchTaskHistory = useCallback(async () => {
-    if (!userId || !token) return;
+    if (!supabaseClient) return;
 
     try {
-      const tasks = await getAllTasks(userId, token);
-      if (tasks) {
-        setScrapeHistory(tasks);
-      }
+      const tasks = await getTasks(supabaseClient);
+      if (tasks) setScrapeHistory(tasks);
     } catch (error) {
       console.error("Error fetching task history:", error);
+      toast.error("Failed to load tasks");
     }
-  }, [userId, token]);
+  }, [supabaseClient]);
 
   const updateTaskStatus = useCallback(
     async (taskId: string, status: TaskStatus, data?: string) => {
-      if (!userId || !token) return;
+      if (!supabaseClient) return;
 
       try {
-        await updateTask(userId, token, taskId, status, data);
+        await updateTask(supabaseClient, taskId, status);
 
         setScrapeHistory((prev) =>
           prev.map((task) =>
@@ -68,24 +57,24 @@ export const useTask = () => {
         );
       } catch (error) {
         console.error("Error updating task status:", error);
+        toast.error("Failed to update task status");
       }
     },
-    [userId, token],
+    [supabaseClient],
   );
 
   useEffect(() => {
+    if (!session || !supabaseClient) return;
     void fetchTaskHistory();
-  }, [fetchTaskHistory]);
+  }, [session, supabaseClient, fetchTaskHistory]);
 
   return {
-    userId,
-    token,
-    scrapeStatus,
+    userId: session?.user.id,
+    supabaseClient,
     scrapeHistory,
     loading,
     setScrapeHistory,
     setLoading,
-    setScrapeStatus,
     validateUrls,
     updateTaskStatus,
   };

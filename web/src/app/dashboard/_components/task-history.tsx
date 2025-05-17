@@ -6,10 +6,10 @@ import {
   CardDescription,
   CardContent,
 } from "~/components/ui/card";
-import type { TaskHistory } from "../../../lib/types";
+import type { Tables } from "~/database.types";
 
 interface ScrapeHistoryCardProps {
-  scrapeHistory: TaskHistory[];
+  scrapeHistory: Tables<"tasks">[];
 }
 
 export const ScrapeHistoryCard = ({
@@ -38,10 +38,11 @@ export const ScrapeHistoryCard = ({
         >
           <CardHeader>
             <CardTitle className="text-white">
-              {task.type === "single" ? "Single Page" : "Multiple Pages"} Scrape
+              {task.scrape_type === "single" ? "Single Page" : "Multiple Pages"}
+              Scrape
             </CardTitle>
             <CardDescription className="text-white/70">
-              {new Date(task.created).toLocaleString()}
+              {new Date(task.created!).toLocaleString()}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -57,9 +58,6 @@ export const ScrapeHistoryCard = ({
               >
                 Status: {task.status}
               </p>
-              {task.data && (
-                <p className="text-sm text-white/70">Data: {task.data}</p>
-              )}
             </div>
           </CardContent>
         </Card>

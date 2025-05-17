@@ -32,18 +32,16 @@ export default function RootLayout({
           baseTheme: dark,
         }}
       >
-        <CSPostHogProvider>
-          <html lang="en" suppressHydrationWarning>
-            <body
-              className={`${geist.variable} overflow-x-hidden scroll-smooth`}
-            >
+        <html lang="en" suppressHydrationWarning>
+          <body className={`${geist.variable} overflow-x-hidden scroll-smooth`}>
+            <CSPostHogProvider>
               <ThemeProvider attribute="class" forcedTheme="dark">
                 <Navbar />
                 {children}
               </ThemeProvider>
-            </body>
-          </html>
-        </CSPostHogProvider>
+            </CSPostHogProvider>
+          </body>
+        </html>
       </ClerkProvider>
     </>
   );
