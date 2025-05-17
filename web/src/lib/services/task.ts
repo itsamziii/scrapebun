@@ -53,3 +53,22 @@ export async function updateTask(
 
   return data as Tables<"tasks">;
 }
+
+export async function getTask(
+  client: SupabaseClient,
+  taskId: string,
+): Promise<Tables<"tasks"> | null> {
+  const { data, error } = await client
+    .from("tasks")
+    .select("*")
+    .eq("id", taskId)
+    .single()
+    .overrideTypes<Tables<"tasks">>();
+
+  if (error) {
+    console.error(error);
+    return null;
+  }
+
+  return data as Tables<"tasks">;
+}
