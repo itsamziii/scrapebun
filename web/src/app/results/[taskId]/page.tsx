@@ -60,88 +60,86 @@ export default function ResultsPage() {
       : data.single_result.data_csv;
 
   const handleCopy = () => {
-    if (data.task_scrape_type === "single") {
-      void navigator.clipboard.writeText(taskId as string);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    }
+    void navigator.clipboard.writeText(taskId as string);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
-    return (
-      <div className="container mx-auto py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-white">Scrape Results</h1>
-          <Link href="/dashboard">
-            <Button variant="outline" className="text-white">
-              Back to Dashboard
-            </Button>
-          </Link>
-        </div>
+  return (
+    <div className="container mx-auto py-8">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-white">Scrape Results</h1>
+        <Link href="/dashboard">
+          <Button variant="outline" className="text-white">
+            Back to Dashboard
+          </Button>
+        </Link>
+      </div>
 
-        <Card className="border-white/10">
-          <CardHeader>
-            <CardTitle className="text-white">Task Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-white/70">Task ID</p>
-                <p className="text-white">{data.task_id}</p>
-              </div>
-              <div>
-                <p className="text-sm text-white/70">Status</p>
-                <p className="text-white">{data.task_status}</p>
-              </div>
-              <div>
-                <p className="text-sm text-white/70">Scrape Type</p>
-                <p className="text-white capitalize">
-                  {data.task_scrape_type || "unknown"}
-                </p>
-              </div>
+      <Card className="border-white/10">
+        <CardHeader>
+          <CardTitle className="text-white">Task Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-white/70">Task ID</p>
+              <p className="text-white">{data.task_id}</p>
             </div>
-          </CardContent>
-        </Card>
-
-        {data.task_scrape_type === "single" ? (
-          <Card className="mt-6 border-white/10">
-            <CardHeader>
-              <CardTitle className="text-white">Response Data</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="json" className="w-full">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="json">JSON</TabsTrigger>
-                  <TabsTrigger value="csv">CSV</TabsTrigger>
-                </TabsList>
-                <TabsContent value={language}>
-                  <CodeBlock
-                    language={language}
-                    filename={filename}
-                    code={JSON.stringify(code)}
-                  />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="mt-6 text-white/70">
-            <p>To view the data, visit the MCP server and use the Task ID:</p>
-            <div className="flex items-center space-x-2">
-              <span className="rounded bg-gray-800 p-2 font-mono text-white">
-                {taskId}
-              </span>
-              <Button variant="outline" onClick={handleCopy}>
-                {isCopied ? (
-                  "Copied"
-                ) : (
-                  <>
-                    <Copy className="mr-2" size={16} /> Copy Task ID
-                  </>
-                )}
-              </Button>
+            <div>
+              <p className="text-sm text-white/70">Status</p>
+              <p className="text-white">{data.task_status}</p>
+            </div>
+            <div>
+              <p className="text-sm text-white/70">Scrape Type</p>
+              <p className="text-white capitalize">
+                {data.task_scrape_type || "unknown"}
+              </p>
             </div>
           </div>
-        )}
-      </div>
-    );
-  };
+        </CardContent>
+      </Card>
+
+      {data.task_scrape_type === "single" ? (
+        <Card className="mt-6 border-white/10">
+          <CardHeader>
+            <CardTitle className="text-white">Response Data</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="json" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="json">JSON</TabsTrigger>
+                <TabsTrigger value="csv">CSV</TabsTrigger>
+              </TabsList>
+              <TabsContent value={language}>
+                <CodeBlock
+                  language={language}
+                  filename={filename}
+                  code={JSON.stringify(code)}
+                />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="mt-6 text-white/70">
+          <p>To view the data, visit the MCP server and use the Task ID:</p>
+          <div className="flex items-center space-x-2">
+            <span className="rounded bg-gray-800 p-2 font-mono text-white">
+              {taskId}
+            </span>
+            <Button variant="outline" onClick={handleCopy}>
+              {isCopied ? (
+                "Copied"
+              ) : (
+                <>
+                  <Copy className="mr-2" size={16} /> Copy Task ID
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

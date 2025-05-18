@@ -60,7 +60,7 @@ export const ScrapeHistoryCard = ({
               >
                 Status: {task.status}
               </p>
-              <Link href="/result">
+              <Link href={`/results/${task.id}`}>
                 <Button className="bg-ai-primary hover:bg-ai-secondary w-full text-white">
                   View Results
                 </Button>
