@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "next build",
+    "build": "next build --turbo",
     "check": "next lint && tsc --noEmit",
     "dev": "next dev --turbo",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
@@ -49,7 +49,6 @@
     "@react-three/drei": "^10.0.7",
     "@react-three/fiber": "^9.1.2",
     "@supabase/supabase-js": "^2.49.4",
-    "@svgr/webpack": "^8.1.0",
     "@t3-oss/env-nextjs": "^0.12.0",
     "@tabler/icons-react": "^3.33.0",
     "@tanstack/react-query": "^5.76.0",

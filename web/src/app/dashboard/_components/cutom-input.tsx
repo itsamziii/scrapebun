@@ -158,9 +158,6 @@ export const CustomInputCard: React.FC<CustomInputCardProps> = ({
                     <>
                       <SelectItem value="JSON">JSON</SelectItem>
                       <SelectItem value="CSV">CSV</SelectItem>
-                      <SelectItem value="Google Sheets">
-                        Google Sheets
-                      </SelectItem>
                     </>
                   ) : (
                     <>

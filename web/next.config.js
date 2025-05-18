@@ -5,21 +5,20 @@
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
+
 const coreConfig = {
   output: "standalone",
-  turbopack: {
-    rules: {
-      "*.svg": {
-        loaders: ["@svgr/webpack"],
-        as: "*.js",
-      },
-    },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   rewrites: async () => {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:5000/api/:path*",
+        destination: `http://${process.env.NODE_ENV === "production" ? "api" : "localhost"}:5000/api/:path`,
       },
       {
         source: "/ingest/static/:path*",

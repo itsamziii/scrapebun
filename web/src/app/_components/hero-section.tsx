@@ -5,12 +5,6 @@ const HeroSection = () => {
   return (
     <section className="flex min-h-screen items-center justify-center pt-20 pb-32">
       <div className="container mx-auto px-4 text-center">
-        {/* <div className="mb-6 inline-flex items-center rounded-full bg-white/10 px-3 py-1 backdrop-blur-lg">
-          <span className="text-ai-primary mr-2 text-sm font-medium">New</span>
-          <span className="text-sm text-white/70">
-            Introducing AIgent Platform v2.0
-          </span>
-        </div> */}
         <h1 className="text-gradient animate-float mx-auto mt-20 mb-6 max-w-4xl text-4xl leading-tight font-bold md:text-6xl lg:text-7xl">
           AI Agents That Work For You, Not The Other Way Around
         </h1>

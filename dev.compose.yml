@@ -21,6 +21,20 @@ services:
       - scrapebun
     depends_on:
       - crawl4ai
+
+  ui:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: ui
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    networks:
+      - scrapebun
+    depends_on:
+      - api
+      
 networks:
   scrapebun:
     external: true

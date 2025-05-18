@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
-import Navbar from "../_components/navbar";
 import Footer from "../_components/footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { ArrowLeft } from "lucide-react";
@@ -147,8 +146,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen">
-      <Navbar />
-
       <main className="pt-28 pb-20">
         <div className="container mx-auto px-4">
           <div className="mb-8 flex items-center">

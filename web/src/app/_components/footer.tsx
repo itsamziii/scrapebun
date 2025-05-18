@@ -9,9 +9,9 @@ const Footer = () => {
           <div>
             <div className="mb-4 flex items-center space-x-2">
               <div className="bg-gradient-href-br from-ai-primary href-ai-light flex h-10 w-10 items-center justify-center rounded-lg">
-                <span className="text-xl font-bold text-white">A</span>
+                <span className="text-xl font-bold text-white">S</span>
               </div>
-              <span className="text-xl font-bold text-white">AIgent</span>
+              <span className="text-xl font-bold text-white">ScrapeBun</span>
             </div>
             <p className="text-sm text-white/70">
               Powering the next generation of AI agents for seamless
@@ -112,7 +112,7 @@ const Footer = () => {
 
         <div className="mt-8 flex flex-col items-center justify-between border-t border-white/10 pt-8 md:flex-row">
           <p className="text-sm text-white/50">
-            © 2025 AIgent. All rights reserved.
+            © 2025 ScrapeBun. All rights reserved.
           </p>
           <div className="mt-4 flex space-x-4 md:mt-0">
             <Link

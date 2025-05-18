@@ -96,10 +96,6 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
-
-  .glass-morphism {
-    @apply border border-white/10 bg-white/5 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.3)] backdrop-blur-xl transition-all duration-500;
-  }
 }
 
 .animate-float {
@@ -115,20 +111,24 @@
 }
 
 @keyframes float {
+
   0%,
   100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-10px);
   }
 }
 
 @keyframes pulse-gentle {
+
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.8;
   }
@@ -138,6 +138,7 @@
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
