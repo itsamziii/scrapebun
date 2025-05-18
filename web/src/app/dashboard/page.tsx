@@ -20,7 +20,6 @@ import type {
 } from "../../lib/types";
 import TaskCard from "./_components/task-card";
 import { useRouter } from "next/navigation";
-import { createTask } from "~/lib/services/task";
 import { handleMultipleScrape } from "./_actions";
 import { handleSingleScrape } from "./_actions";
 
@@ -61,139 +60,6 @@ const Dashboard = () => {
     );
   };
 
-  // const handleRunTask = async () => {
-  //   if (!supabaseClient) {
-  //     toast.error("Please login to continue");
-  //     router.push("/sign-in");
-  //     return;
-  //   }
-
-  //   if (!taskType) {
-  //     toast.error("Please select a task type");
-  //     return;
-  //   }
-
-  //   if (taskType === "single" && !scrapeUrl) {
-  //     toast.error("Please enter a URL");
-  //     return;
-  //   }
-
-  //   const outputFormat =
-  //     taskType === "multiple" ? multipleOutputFormat : singleOutputFormat;
-
-  //   if (!outputFormat) {
-  //     toast.error("Please select an output format");
-  //     return;
-  //   }
-
-  //   if (taskType === "single" && Object.keys(extractFields).length === 0) {
-  //     toast.error("Please specify at least one field to extract");
-  //     return;
-  //   }
-
-  //   setLoading(true);
-  //   // setActiveTab("history");
-
-  //   let taskId = "";
-
-  //   try {
-  //     /**
-  //      * PEHLE CREATE TASK RUN KAR IDHAR USSE TASK ID LE
-  //      * USKE BAAD USER KO HISTORY PAR REREDIRECT KARNA HAI
-  //      */
-
-  //     taskId = (
-  //       await createTask(supabaseClient, {
-  //         scrape_type: taskType,
-  //         status: "running",
-  //       })
-  //     ).id;
-
-  //     if (!taskId) {
-  //       throw new Error("Failed to create task");
-  //     }
-
-  //     setScrapeHistory((prevHistory) => [
-  //       ...prevHistory,
-  //       {
-  //         id: taskId,
-  //         user_id: userId!,
-  //         scrape_type: taskType,
-  //         created: new Date().toISOString(),
-  //         status: "running",
-  //       },
-  //     ]);
-
-  //     setActiveTab("history");
-
-  //     let res;
-
-  //     if (taskType === "single") {
-  //       const payload = {
-  //         task_id: taskId,
-  //         url: scrapeUrl,
-  //         instruction: instruction,
-  //         data_schema: extractFields,
-  //         output_type: outputFormat.toLowerCase(),
-  //       };
-
-  //       res = await fetch("http://localhost:5000/api/crawl/", {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify(payload),
-  //       });
-
-  //       // res = await fetch("/api/scrape", {
-  //       //   method: "POST",
-  //       //   headers: { "Content-Type": "application/json" },
-  //       //   body: JSON.stringify({
-  //       //     urls: scrapeUrl,
-  //       //     type: taskType,
-  //       //     instruction,
-  //       //     fields: extractFields,
-  //       //     outputFormat,
-  //       //   }),
-  //       // });
-  //     } else {
-  //       /**
-  //        * > MULTIPLE SCRAPING TASK
-  //        * AB YAHA API CALL KAR
-  //        */
-
-  //       // res = await fetch("/api/scrape2", {
-  //       //   method: "POST",
-  //       //   headers: { "Content-Type": "application/json" },
-  //       //   body: JSON.stringify({
-  //       //     url: scrapeUrl,
-  //       //     type: taskType,
-  //       //     instruction,
-  //       //     outputFormat,
-  //       //   }),
-  //       // });
-  //     }
-
-  //     /**
-  //      * AB UPDATE TASK STATUS KARNA HAI
-  //      */
-
-  //     await updateTaskStatus(taskId, "success", JSON.stringify(result));
-  //     updateScrapeHistory(taskId, "success", JSON.stringify(result));
-  //   } catch (error) {
-  //     console.error("Error running scrape task:", error);
-
-  //     if (taskId)
-  //       await updateTaskStatus(
-  //         taskId,
-  //         "error",
-  //         error instanceof Error ? error.message : "Unknown error",
-  //       );
-
-  //     toast.error("Failed to run the scraping task");
-  //   }
-  //   setLoading(false);
-  // };
   const handleRunTask = async () => {
     if (!supabaseClient) {
       toast.error("Please login to continue");
@@ -206,7 +72,7 @@ const Dashboard = () => {
       return;
     }
 
-    if (taskType === "single" && !scrapeUrl) {
+    if (!scrapeUrl) {
       toast.error("Please enter a URL");
       return;
     }
@@ -257,13 +123,14 @@ const Dashboard = () => {
           "success",
           JSON.stringify(result.taskData),
         );
+
         updateScrapeHistory(
           result.taskData!.task_id,
           "success",
           JSON.stringify(result.taskData),
         );
       } else {
-        throw new Error(result.message || "Unknown error occurred");
+        throw new Error(result.message ?? "Unknown error occurred");
       }
     } catch (error) {
       console.error("Error running scrape task:", error);

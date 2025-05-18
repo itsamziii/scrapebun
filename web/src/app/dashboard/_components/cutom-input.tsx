@@ -109,7 +109,7 @@ export const CustomInputCard: React.FC<CustomInputCardProps> = ({
           </Select>
         </div>
 
-        {taskType === "single" && (
+        {(taskType === "single" || taskType === "multiple") && (
           <div className="space-y-6">
             <div>
               <label className="mb-1 block text-sm text-white/70">
@@ -139,65 +139,41 @@ export const CustomInputCard: React.FC<CustomInputCardProps> = ({
                 Output Format
               </label>
               <Select
-                value={singleOutputFormat ?? undefined}
-                onValueChange={handleSingleFormatChange}
+                value={
+                  taskType === "single"
+                    ? (singleOutputFormat ?? undefined)
+                    : (multipleOutputFormat ?? undefined)
+                }
+                onValueChange={
+                  taskType === "single"
+                    ? handleSingleFormatChange
+                    : handleMultipleFormatChange
+                }
               >
                 <SelectTrigger className="border-white/10 bg-white/5 text-white">
                   <SelectValue placeholder="Select output format" />
                 </SelectTrigger>
                 <SelectContent className="border-white/10 bg-black">
-                  <SelectItem value="JSON">JSON</SelectItem>
-                  <SelectItem value="CSV">CSV</SelectItem>
-                  <SelectItem value="Google Sheets">Google Sheets</SelectItem>
+                  {taskType === "single" ? (
+                    <>
+                      <SelectItem value="JSON">JSON</SelectItem>
+                      <SelectItem value="CSV">CSV</SelectItem>
+                      <SelectItem value="Google Sheets">
+                        Google Sheets
+                      </SelectItem>
+                    </>
+                  ) : (
+                    <>
+                      <SelectItem value="Vector DB">Vector DB</SelectItem>
+                      <SelectItem value="PostgreSQL">PostgreSQL</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
-            <DataObjectBuilder onObjectChange={handleExtractFieldsChange} />
-          </div>
-        )}
-
-        {taskType === "multiple" && (
-          <div className="space-y-6">
-            <div>
-              <label className="mb-1 block text-sm text-white/70">
-                Website URL
-              </label>
-              <Input
-                value={scrapeUrl}
-                onChange={(e) => setScrapeUrl(e.target.value)}
-                placeholder="https://example.com"
-                className="border-white/10 bg-white/5 text-white"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm text-white/70">
-                Instruction
-              </label>
-              <Input
-                value={instruction}
-                onChange={(e) => setInstruction(e.target.value)}
-                placeholder="Enter task-specific instructions"
-                className="border-white/10 bg-white/5 text-white"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm text-white/70">
-                Output Format
-              </label>
-              <Select
-                value={multipleOutputFormat ?? undefined}
-                onValueChange={handleMultipleFormatChange}
-              >
-                <SelectTrigger className="border-white/10 bg-white/5 text-white">
-                  <SelectValue placeholder="Select output format" />
-                </SelectTrigger>
-                <SelectContent className="border-white/10 bg-black">
-                  <SelectItem value="Vector DB">Vector DB</SelectItem>
-                  <SelectItem value="PostgreSQL">PostgreSQL</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {taskType === "single" && (
+              <DataObjectBuilder onObjectChange={handleExtractFieldsChange} />
+            )}
           </div>
         )}
       </CardContent>

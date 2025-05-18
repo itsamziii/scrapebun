@@ -1,9 +1,12 @@
 "use client";
-import React from "react";
+import type React from "react";
 import { type SupabaseClient } from "@supabase/supabase-js";
-import type { Tables } from "~/database.types";
+import type { Json, Tables } from "~/database.types";
 import { createTask } from "~/lib/services/task";
-import { createMultipleScrapeResult } from "~/lib/services/result";
+import {
+  createMultipleScrapeResults,
+  createSingleScrapeResult,
+} from "~/lib/services/result";
 
 interface APIResult<T> {
   message?: string;
@@ -62,6 +65,7 @@ export async function handleSingleScrape(
 
     setActiveTab("history");
 
+    const format = options.outputFormat.toLowerCase();
     const res = await fetch("http://localhost:5000/api/crawl/", {
       method: "POST",
       headers: {
@@ -72,7 +76,7 @@ export async function handleSingleScrape(
         url: options.scrapeUrl,
         instruction: options.instruction,
         data_schema: options.extractFields,
-        output_type: options.outputFormat.toLowerCase(),
+        output_type: format,
       }),
     });
 
@@ -81,6 +85,19 @@ export async function handleSingleScrape(
     }
 
     const crawlResult = (await res.json()) as CrawlResult;
+
+    const data_json =
+      format === "json" ? (crawlResult.response as Json) : undefined;
+    const data_csv =
+      format === "csv" ? (crawlResult.response as string) : undefined;
+
+    await createSingleScrapeResult(supabase, {
+      task_id: task.id,
+      data_json,
+      data_csv,
+      format,
+      url: options.scrapeUrl,
+    });
 
     return {
       success: true,
@@ -95,87 +112,11 @@ export async function handleSingleScrape(
   }
 }
 
-// export async function handleMultipleScrape(
-//   supabase: SupabaseClient,
-//   userId: string,
-//   scrapeUrl: string,
-//   setScrapeHistory: React.Dispatch<React.SetStateAction<Tables<"tasks">[]>>,
-//   setActiveTab: (tab: string) => void,
-// ): Promise<APIResult<DomainCrawlResult>> {
-//   try {
-//     const sitemapRes = await fetch(
-//       `http://localhost:5000/api/domain/sitemap?url=${encodeURIComponent(scrapeUrl)}`,
-//       {
-//         method: "GET",
-//         headers: { "Content-Type": "application/json" },
-//       },
-//     );
-//     if (!sitemapRes.ok) {
-//       throw new Error(
-//         `Failed to fetch sitemap: ${sitemapRes.status} ${sitemapRes.statusText}`,
-//       );
-//     }
-
-//     const sitemapData = (await sitemapRes.json()) as { urls: string[] };
-//     const urls = sitemapData.urls;
-//     if (!Array.isArray(urls) || urls.length === 0) {
-//       throw new Error("No URLs found");
-//     }
-
-//     const task = await createTask(supabase, {
-//       scrape_type: "multiple",
-//       status: "running",
-//     });
-
-//     setScrapeHistory((prev: Tables<"tasks">[]) => [
-//       ...prev,
-//       {
-//         id: task.id,
-//         user_id: userId,
-//         scrape_type: "multiple",
-//         created: new Date().toISOString(),
-//         status: "running",
-//       } as Tables<"tasks">,
-//     ]);
-
-//     setActiveTab("history");
-
-//     const payload = {
-//       task_id: task.id,
-//       urls,
-//     };
-
-//     const res = await fetch("http://localhost:5000/api/crawl/domain", {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify(payload),
-//     });
-
-//     if (!res.ok) {
-//       throw new Error("Failed to start domain crawl");
-//     }
-
-//     const crawlResult = (await res.json()) as DomainCrawlResult;
-//     return {
-//       success: true,
-//       taskData: crawlResult,
-//     };
-//   } catch (e) {
-//     console.error(e);
-//     return {
-//       success: false,
-//       message: "Failed to start domain crawl",
-//     };
-//   }
-// }
-
 export async function handleMultipleScrape(
   supabase: SupabaseClient,
-  user_id: string,
+  userId: string,
   scrapeUrl: string,
-  setScrapeHistory: React.Dispatch<
-    React.SetStateAction<Tables<"multiple_scrape_results">[]>
-  >,
+  setScrapeHistory: React.Dispatch<React.SetStateAction<Tables<"tasks">[]>>,
   setActiveTab: (tab: string) => void,
 ): Promise<APIResult<DomainCrawlResult>> {
   try {
@@ -198,22 +139,26 @@ export async function handleMultipleScrape(
       throw new Error("No URLs found");
     }
 
-    const scrapeResult = await createMultipleScrapeResult(supabase, {
-      task_id: user_id, // ye wala part dekh liyo jara
-      chunk_number: 0,
-      text: "Scraping initialized",
-      created: new Date().toISOString(),
+    const task = await createTask(supabase, {
+      scrape_type: "multiple",
+      status: "running",
     });
 
-    setScrapeHistory((prev: Tables<"multiple_scrape_results">[]) => [
+    setScrapeHistory((prev: Tables<"tasks">[]) => [
       ...prev,
-      scrapeResult,
+      {
+        id: task.id,
+        user_id: userId,
+        scrape_type: "multiple",
+        created: new Date().toISOString(),
+        status: "running",
+      } as Tables<"tasks">,
     ]);
 
     setActiveTab("history");
 
     const payload = {
-      task_id: scrapeResult.task_id,
+      task_id: task.id,
       urls,
     };
 
@@ -228,6 +173,19 @@ export async function handleMultipleScrape(
     }
 
     const crawlResult = (await res.json()) as DomainCrawlResult;
+
+    await createMultipleScrapeResults(
+      supabase,
+      crawlResult.output.flat().map((chunk) => ({
+        task_id: task.id,
+        chunk_number: chunk.chunk_number,
+        text: chunk.text,
+        title: chunk.title,
+        url: chunk.url,
+        embedding: `[${chunk.embedding.join(",")}]`,
+      })),
+    );
+
     return {
       success: true,
       taskData: crawlResult,
