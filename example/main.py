@@ -5,7 +5,7 @@ from pydantic_ai.mcp import MCPServerHTTP
 
 load_dotenv()
 
-TASK_ID = ""
+TASK_ID = "bf5c3144-63d2-42d8-860a-d6256bb6e279"
 
 server = MCPServerHTTP(url="http://localhost:8000/sse")
 agent = Agent(
