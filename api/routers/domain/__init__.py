@@ -57,7 +57,7 @@ async def get_sitemap(url: HttpUrl):
             if url_item is not None and "sitemap" not in str(url_item).lower()
         ]
 
-        return {"urls": valid_urls[:2]}
+        return {"urls": valid_urls[:4]}
 
     except ElementTree.ParseError as e:
         return JSONResponse(

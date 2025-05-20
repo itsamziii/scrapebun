@@ -123,17 +123,23 @@ export const CustomInputCard: React.FC<CustomInputCardProps> = ({
                 required
               />
             </div>
-            <div>
-              <label className="mb-1 block text-sm text-white/70">
-                Instruction
-              </label>
-              <Input
-                value={instruction}
-                onChange={(e) => setInstruction(e.target.value)}
-                placeholder="Enter task-specific instructions"
-                className="border-white/10 bg-white/5 text-white"
-              />
-            </div>
+
+            {taskType === "single" ? (
+              <div>
+                <label className="mb-1 block text-sm text-white/70">
+                  Instruction
+                </label>
+                <Input
+                  value={instruction}
+                  onChange={(e) => setInstruction(e.target.value)}
+                  placeholder="Enter task-specific instructions"
+                  className="border-white/10 bg-white/5 text-white"
+                />
+              </div>
+            ) : (
+              <></>
+            )}
+
             <div>
               <label className="mb-1 block text-sm text-white/70">
                 Output Format
